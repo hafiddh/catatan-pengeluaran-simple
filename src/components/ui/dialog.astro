@@ -1,0 +1,36 @@
+---
+import LayoutPrivate from "@/components/layouts/LayoutPrivate.astro";
+import cn from "@/libs/cn";
+import { XSquareIcon } from "lucide-react";
+const props = Astro.props;
+---
+
+<div
+  class={cn(
+    "fixed inset-0 flex items-center justify-center ",
+    props.isShow ? "" : " invisible"
+  )}
+>
+  <div
+    onclick="props.setIsShow(false)"
+    class="fixed w-full h-full backdrop-blur-sm bg-black/50"
+  >
+  </div>
+  <div
+    class={cn(
+      "z-[100] rounded-lg border bg-card text-card-foreground shadow-sm",
+      props.class
+    )}
+    {...props}
+  >
+    <div class="relative">
+      <div
+        class="absolute -top-[3px] -right-[3px]"
+        onclick="props.setIsShow(false)"
+      >
+        <XSquareIcon />
+      </div>
+    </div>
+    <slot />
+  </div>
+</div>

@@ -1,0 +1,8 @@
+---
+import cn from "@/libs/cn";
+const props = Astro.props;
+---
+
+<div class={cn("bg-white p-6 min-w-[400px] rounded-md shadow-md", props.class)}>
+  <slot />
+</div>

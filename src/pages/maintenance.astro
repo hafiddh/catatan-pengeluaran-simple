@@ -1,0 +1,10 @@
+---
+import Layout from "@/components/layouts/Layout.astro";
+import { MaintenancePageV2 } from "@/components/modules/maintenance/maintenance-v2";
+---
+
+<Layout title="Maintenance" description="Halaman Maintenance">
+  <main>
+    <MaintenancePageV2 client:load />
+  </main>
+</Layout>

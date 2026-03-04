@@ -1,0 +1,7 @@
+---
+import cn from "@/libs/cn";
+const props = Astro.props;
+---
+
+
+<button class={cn("bg-primary text-primary-foreground hover:bg-primary/90", props.class)} {...props}><slot /></button>
