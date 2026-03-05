@@ -3,7 +3,8 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
-    "dev": "astro dev --host",
+    "dev": "astro dev", 
+    "dev-host": "astro dev --host",
     "dev:https": "set LOCAL_HTTPS=true&& astro dev --host",
     "build": "astro build",
     "preview": "astro preview",

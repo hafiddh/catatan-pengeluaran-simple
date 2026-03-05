@@ -4,5 +4,16 @@ import { LoginWithGoogleProvider } from "@/components/modules/login/login-with-g
 ---
 
 <Layout title="Login" description="Pencatatan Pengeluaran - AngelSuicide">
+  <script is:inline>
+    (() => {
+      try { 
+        const token = localStorage.getItem("auth_token");
+        if (token) {
+          window.location.href = "/dashboard";
+          return;
+        }
+      } catch {}
+    })();
+  </script>
   <LoginWithGoogleProvider client:load />
 </Layout>

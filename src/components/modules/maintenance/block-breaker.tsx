@@ -215,13 +215,13 @@ export const GameBlockBreaker: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen -mt-10">
-      <motion.img
+      {/* <motion.img
         src="/images/logo/myasn-3-v2.png"
         alt="myasn-logo"
         className="object-cover w-[200px]"
         animate={{ y: [0, -20, 0], x: [0, 20, 0], scale: [1, 1.2, 1], rotate: [0, 1.5, -1.5, 0] }}
         transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-      />
+      /> */}
       <motion.h1
         animate={{ y: [0, -10, 0] }}
         transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}

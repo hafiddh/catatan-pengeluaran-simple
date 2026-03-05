@@ -171,7 +171,7 @@ export const GameUlarUlar: React.FC = () => {
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen bg-gradient-to-br  to-secondaryBkn/50 via-white from-primaryBkn/20 text-white">
-      <motion.img
+      {/* <motion.img
         src="/images/logo/myasn-3-v2.png"
         alt="myasn-logo"
         className="object-cover w-[200px]"
@@ -186,7 +186,7 @@ export const GameUlarUlar: React.FC = () => {
           repeat: Infinity,
           ease: "easeInOut",
         }}
-      />
+      /> */}
 
       <motion.h1
         animate={{ y: [0, -10, 0] }}
