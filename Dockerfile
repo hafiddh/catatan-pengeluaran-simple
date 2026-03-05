@@ -1,27 +1,32 @@
-FROM node:20-alpine AS deps
+# ---------- Build stage ----------
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json* ./
+
 RUN npm ci
 
-FROM deps AS build
+COPY . .
 
-WORKDIR /app
-
-COPY . ./
 RUN npm run build
 
+
+# ---------- Runtime stage ----------
 FROM node:20-alpine AS runner
 
 WORKDIR /app
 
 ENV NODE_ENV=production
+ENV HOST=0.0.0.0
+ENV PORT=4321
 
-COPY --from=build /app/package.json /app/package-lock.json ./
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/dist ./dist
+# lightweight static file server
+RUN npm install -g serve
+
+# copy build output
+COPY --from=builder /app/dist ./dist
 
 EXPOSE 4321
 
-CMD ["npm", "run", "preview", "--", "--host", "0.0.0.0", "--port", "4321"]
+CMD ["serve", "-s", "dist", "-l", "tcp://0.0.0.0:4321"]

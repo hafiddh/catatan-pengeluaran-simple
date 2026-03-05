@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
-    "dev": "astro dev", 
+    "dev": "astro dev",
     "dev-host": "astro dev --host",
     "dev:https": "set LOCAL_HTTPS=true&& astro dev --host",
     "build": "astro build",
@@ -11,6 +11,7 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@astrojs/node": "^9.5.4",
     "@astrojs/react": "^4.4.2",
     "@react-oauth/google": "^0.13.4",
     "@tailwindcss/vite": "^4.2.1",
