@@ -1,5 +1,6 @@
 ---
 import Layout from "@/components/layouts/Layout";
+import { LaporanPage } from "@/components/modules/laporan/laporan";
 ---
 
 <head>
@@ -7,7 +8,5 @@ import Layout from "@/components/layouts/Layout";
 </head>
 
 <Layout client:load title="Laporan" description="Laporan Pengeluaran">
-  <main class="min-h-screen container-px py-8">
-    <h1 class="text-2xl font-bold">Laporan</h1>
-  </main>
+  <LaporanPage client:load />
 </Layout>
