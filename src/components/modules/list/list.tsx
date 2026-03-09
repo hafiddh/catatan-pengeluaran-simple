@@ -1,6 +1,9 @@
 import { AmountInput } from "@/components/ui/amount-input";
 import { AppleDatePicker } from "@/components/ui/apple-date-picker";
-import { ExpenseTypePills } from "@/components/ui/expense-type-pills";
+import {
+    ExpenseTypePills,
+    getExpenseTypeIcon,
+} from "@/components/ui/expense-type-pills";
 import showToast from "@/lib/simpleToast";
 import { listExpenseTypes, type ExpenseType } from "@/service/expense-types";
 import {
@@ -11,15 +14,14 @@ import {
 } from "@/service/notes";
 import {
     CalendarRange,
-    FilePenLine,
+    ChevronDown,
     LoaderCircle,
     Pencil,
     RefreshCcw,
     Save,
     Tag,
     Trash2,
-    Wallet,
-    X,
+    Wallet
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -77,6 +79,9 @@ export function ListNotesPage() {
   const [editExpenseType, setEditExpenseType] = useState<string>("");
   const [isSubmittingEdit, setIsSubmittingEdit] = useState(false);
   const [deletingId, setDeletingId] = useState<string>("");
+  const [pendingDeleteNote, setPendingDeleteNote] =
+    useState<ShoppingNote | null>(null);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const token = useMemo(() => {
     try {
@@ -246,21 +251,30 @@ export function ListNotesPage() {
     }
   };
 
-  const handleDelete = async (note: ShoppingNote) => {
+  const handleDelete = (note: ShoppingNote) => {
     if (deletingId) return;
 
-    const confirmed = window.confirm(
-      `Hapus catatan ${expenseTypeMap.get(note.kategori_id)?.label || "tanpa kategori"} pada ${formatDate(note.tanggal)}?`,
-    );
-    if (!confirmed) return;
+    setPendingDeleteNote(note);
+  };
 
-    setDeletingId(note.id);
+  const closeDeleteModal = () => {
+    if (deletingId) return;
+    setPendingDeleteNote(null);
+  };
+
+  const confirmDelete = async () => {
+    if (!pendingDeleteNote) return;
+
+    setDeletingId(pendingDeleteNote.id);
     try {
-      await deleteShoppingNote(token, note.id);
-      setNotes((current) => current.filter((item) => item.id !== note.id));
-      if (editingNote?.id === note.id) {
+      await deleteShoppingNote(token, pendingDeleteNote.id);
+      setNotes((current) =>
+        current.filter((item) => item.id !== pendingDeleteNote.id),
+      );
+      if (editingNote?.id === pendingDeleteNote.id) {
         closeEditModal();
       }
+      setPendingDeleteNote(null);
       showToast("Catatan berhasil dihapus", { type: "success" });
     } catch (e: unknown) {
       const message =
@@ -278,55 +292,94 @@ export function ListNotesPage() {
   return (
     <main className="min-h-screen pt-6 pb-12">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
-        <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-lg dark:border-slate-700 dark:bg-slate-900 sm:p-6">
-          <div className="mb-4 flex items-center justify-between">
-            <div className="flex items-center  gap-2">
+        <section className="rounded-2xl border border-gray-200 bg-white p-3 shadow-lg dark:border-slate-700 dark:bg-slate-900 sm:p-6">
+          <button
+            type="button"
+            onClick={() => setIsFilterOpen((current) => !current)}
+            className="flex w-full cursor-pointer items-center justify-between gap-3 text-left"
+            aria-expanded={isFilterOpen}
+            aria-controls="laporan-filter-panel"
+          >
+            <div className="flex items-center gap-2">
               <CalendarRange className="h-4 w-4 text-cyan-600 dark:text-cyan-300" />
-              <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">
-                Filter
-              </h2>
+              <div>
+                <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">
+                  Filter
+                </h2>
+              </div>
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                setStartDate(getFirstDayOfMonth());
-                setEndDate(getTodayLocalISODate());
-              }}
-              disabled={isLoading || isRefreshing}
-              className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-gray-300 p-2 text-sm font-semibold text-gray-900 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-800"
-            >
-              <RefreshCcw
-                className={"h-4 w-4 " + (isRefreshing ? "animate-spin" : "")}
-              />
-            </button>
-          </div>
 
-          <div className="grid gap-4 md:grid-cols-[1fr_1fr_auto] md:items-end">
-            <label className="space-y-2">
-              <span className="text-sm font-medium text-gray-700 dark:text-slate-200">
-                Dari tanggal
+            <span className="inline-flex items-center gap-2">
+              <span className="hidden text-xs font-medium text-gray-500 dark:text-slate-300 sm:inline">
+                {isFilterOpen ? "Tutup" : "Buka"}
               </span>
-              <input
-                type="date"
-                value={startDate}
-                max={endDate || undefined}
-                onChange={(event) => setStartDate(event.target.value)}
-                className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-cyan-500 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100"
-              />
-            </label>
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-gray-300 text-gray-700 transition dark:border-slate-600 dark:text-slate-200">
+                <ChevronDown
+                  className={
+                    "h-4 w-4 transition-transform duration-200 " +
+                    (isFilterOpen ? "rotate-180" : "rotate-0")
+                  }
+                />
+              </span>
+            </span>
+          </button>
 
-            <label className="space-y-2">
-              <span className="text-sm font-medium text-gray-700 dark:text-slate-200">
-                Sampai tanggal
-              </span>
-              <input
-                type="date"
-                value={endDate}
-                min={startDate || undefined}
-                onChange={(event) => setEndDate(event.target.value)}
-                className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-cyan-500 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100"
-              />
-            </label>
+          <div
+            id="laporan-filter-panel"
+            className={
+              "grid overflow-hidden transition-all duration-300 ease-out " +
+              (isFilterOpen
+                ? "mt-4 grid-rows-[1fr] opacity-100"
+                : "grid-rows-[0fr] opacity-0")
+            }
+          >
+            <div className="min-h-0 overflow-hidden">
+              <div className="grid gap-4 md:grid-cols-[1fr_1fr] md:items-end">
+                <label className="space-y-2">
+                  <span className="text-sm font-medium text-gray-700 dark:text-slate-200">
+                    Dari tanggal
+                  </span>
+                  <input
+                    type="date"
+                    value={startDate}
+                    max={endDate || undefined}
+                    onChange={(event) => setStartDate(event.target.value)}
+                    className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-cyan-500 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100"
+                  />
+                </label>
+
+                <label className="space-y-2">
+                  <span className="text-sm font-medium text-gray-700 dark:text-slate-200">
+                    Sampai tanggal
+                  </span>
+                  <input
+                    type="date"
+                    value={endDate}
+                    min={startDate || undefined}
+                    onChange={(event) => setEndDate(event.target.value)}
+                    className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-cyan-500 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100"
+                  />
+                </label>
+              </div>
+              <div className="flex items-center justify-end pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStartDate(getFirstDayOfMonth());
+                    setEndDate(getTodayLocalISODate());
+                  }}
+                  disabled={isLoading || isRefreshing}
+                  className="inline-flex text-xs cursor-pointer items-center justify-center gap-2 rounded-xl border border-gray-300 px-2 py-2  font-semibold text-gray-900 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-800"
+                >
+                  <RefreshCcw
+                    className={
+                      "h-4 w-4 " + (isRefreshing ? "animate-spin" : "")
+                    }
+                  />{" "}
+                  Reset Filter
+                </button>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -352,7 +405,66 @@ export function ListNotesPage() {
             </div>
           ) : (
             <>
-              <div className="overflow-x-auto">
+              <div className="divide-y divide-gray-100 dark:divide-slate-800 md:hidden">
+                {paginatedNotes.map((note) => {
+                  const category = expenseTypeMap.get(note.kategori_id);
+
+                  return (
+                    <div key={note.id} className="px-4 py-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">
+                            {formatDate(note.tanggal)}
+                          </p>
+                        </div>
+
+                        <div className="inline-flex shrink-0 items-center gap-2 rounded-full bg-cyan-50 px-3.5 py-1.5 text-sm font-semibold text-cyan-700 dark:bg-cyan-950/40 dark:text-cyan-200">
+                          {getExpenseTypeIcon(
+                            category?.icon,
+                            category?.label || "Tanpa kategori",
+                          )}
+                          <span>{category?.label || "Tanpa kategori"}</span>
+                        </div>
+                      </div>
+
+                      <div className="mt-3 flex items-center justify-between gap-3">
+                        <p className="text-xl font-bold tracking-[0.08em] tabular-nums text-gray-900 dark:text-slate-100">
+                          {formatCurrency(note.jumlah)}
+                        </p>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => openEditModal(note)}
+                            aria-label={`Edit catatan ${formatDate(note.tanggal)}`}
+                            title="Edit"
+                            className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-amber-300 bg-amber-50 text-amber-700 transition hover:bg-amber-100 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(note)}
+                            disabled={deletingId === note.id}
+                            aria-label={`Hapus catatan ${formatDate(note.tanggal)}`}
+                            title="Hapus"
+                            className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-red-300 bg-red-50 text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200"
+                          >
+                            {deletingId === note.id ? (
+                              <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-3.5 w-3.5" />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="hidden overflow-x-auto md:block">
                 <table className="min-w-full border-separate border-spacing-0 text-sm">
                   <thead>
                     <tr className="bg-gray-50 text-left text-gray-600 dark:bg-slate-800/60 dark:text-slate-200">
@@ -387,11 +499,15 @@ export function ListNotesPage() {
                             {formatDate(note.tanggal)}
                           </td>
                           <td className="px-5 py-4 align-top sm:px-6">
-                            <div className="inline-flex items-center rounded-full bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-700 dark:bg-cyan-950/40 dark:text-cyan-200">
+                            <div className="inline-flex items-center gap-2 rounded-full bg-cyan-50 px-3.5 py-1.5 text-sm font-semibold text-cyan-700 dark:bg-cyan-950/40 dark:text-cyan-200">
+                              {getExpenseTypeIcon(
+                                category?.icon,
+                                category?.label || "Tanpa kategori",
+                              )}
                               {category?.label || "Tanpa kategori"}
                             </div>
                           </td>
-                          <td className="px-5 py-4 align-top font-semibold text-gray-900 dark:text-slate-100 sm:px-6">
+                          <td className="px-5 py-4 align-top font-semibold tracking-[0.08em] tabular-nums text-gray-900 dark:text-slate-100 sm:px-6">
                             {formatCurrency(note.jumlah)}
                           </td>
                           <td className="px-5 py-4 align-top sm:px-6">
@@ -399,24 +515,26 @@ export function ListNotesPage() {
                               <button
                                 type="button"
                                 onClick={() => openEditModal(note)}
-                                className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-700 transition hover:bg-amber-100 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200"
+                                aria-label={`Edit catatan ${formatDate(note.tanggal)}`}
+                                title="Edit"
+                                className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-amber-300 bg-amber-50 text-amber-700 transition hover:bg-amber-100 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200"
                               >
                                 <Pencil className="h-3.5 w-3.5" />
-                                Edit
                               </button>
 
                               <button
                                 type="button"
                                 onClick={() => handleDelete(note)}
                                 disabled={deletingId === note.id}
-                                className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200"
+                                aria-label={`Hapus catatan ${formatDate(note.tanggal)}`}
+                                title="Hapus"
+                                className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-red-300 bg-red-50 text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200"
                               >
                                 {deletingId === note.id ? (
                                   <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
                                 ) : (
                                   <Trash2 className="h-3.5 w-3.5" />
                                 )}
-                                Hapus
                               </button>
                             </div>
                           </td>
@@ -478,32 +596,23 @@ export function ListNotesPage() {
       </div>
 
       {editingNote ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 px-3 py-6 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 px-3 backdrop-blur-sm">
           <div className="absolute inset-0" onClick={() => closeEditModal()} />
 
-          <section className="relative z-10 max-h-[90vh] w-full max-w-2xl overflow-auto rounded-2xl border border-gray-200 bg-white p-5 shadow-2xl dark:border-slate-700 dark:bg-slate-900 sm:p-6">
-            <div className="mb-6 flex items-start justify-between gap-4">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-amber-600 dark:text-amber-300">
-                  Edit Catatan
-                </p>
-                <h3 className="mt-2 text-xl font-bold text-gray-900 dark:text-slate-100">
-                  Ubah data pengeluaran
-                </h3>
-                <p className="mt-2 text-sm text-gray-500 dark:text-slate-300">
-                  Form ini mengikuti input yang ada di halaman dashboard.
-                </p>
+          <section className="p-3 relative z-10 max-h-[90vh] w-full max-w-2xl overflow-auto rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900 sm:p-6">
+            {/* <div className="flex items-start justify-between gap-4">
+              <div> 
               </div>
 
               <button
                 type="button"
                 onClick={() => closeEditModal()}
                 disabled={isSubmittingEdit}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
+                className="inline-flex h-6 w-6 items-center justify-center rounded-lg border border-gray-300 text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4" />
               </button>
-            </div>
+            </div> */}
 
             <div className="grid grid-cols-1 gap-4">
               <label className="space-y-3">
@@ -574,16 +683,72 @@ export function ListNotesPage() {
                   </>
                 )}
               </button>
-            </div>
+            </div> 
+          </section>
+        </div>
+      ) : null}
 
-            <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
-              <div className="flex items-start gap-2">
-                <FilePenLine className="mt-0.5 h-4 w-4 shrink-0" />
-                <p>
-                  Setelah disimpan, tabel dan summary di halaman ini akan
-                  langsung diperbarui.
+      {pendingDeleteNote ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 px-3 backdrop-blur-sm">
+          <div className="absolute inset-0" onClick={closeDeleteModal} />
+
+          <section className="relative z-10 w-full max-w-md rounded-2xl border border-gray-200 bg-white p-4 shadow-2xl dark:border-slate-700 dark:bg-slate-900 sm:p-5">
+            <div className="flex items-start gap-3">
+              <div className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-red-200 bg-red-50 text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200">
+                <Trash2 className="h-5 w-5" />
+              </div>
+
+              <div className="min-w-0">
+                <h3 className="text-base font-semibold text-gray-900 dark:text-slate-100">
+                  Hapus catatan?
+                </h3>
+                <p className="mt-1 text-sm text-gray-500 dark:text-slate-300">
+                  Catatan
+                  {" "}
+                  <span className="font-medium text-gray-900 dark:text-slate-100">
+                    {expenseTypeMap.get(pendingDeleteNote.kategori_id)?.label ||
+                      "tanpa kategori"}
+                  </span>
+                  {" "}
+                  pada tanggal
+                  {" "}
+                  <span className="font-medium text-gray-900 dark:text-slate-100">
+                    {formatDate(pendingDeleteNote.tanggal)}
+                  </span>
+                  {" "}
+                  akan dihapus permanen dari daftar.
                 </p>
               </div>
+            </div>
+
+            <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={closeDeleteModal}
+                disabled={!!deletingId}
+                className="inline-flex cursor-pointer items-center justify-center rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-900 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-800"
+              >
+                Batal
+              </button>
+
+              <button
+                type="button"
+                onClick={confirmDelete}
+                disabled={!!deletingId}
+                className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-red-300 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200"
+              >
+                {deletingId ? (
+                  <>
+                    <LoaderCircle className="h-4 w-4 animate-spin" />
+                    Menghapus...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="h-4 w-4" />
+                    Ya, hapus
+                  </>
+                )}
+              </button>
             </div>
           </section>
         </div>

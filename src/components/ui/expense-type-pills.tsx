@@ -18,6 +18,26 @@ type ExpenseTypePillsProps = {
   className?: string;
 };
 
+export function getExpenseTypeIcon(
+  iconName: string | null | undefined,
+  label?: string,
+) {
+  const key = (iconName || label || "").toString().toLowerCase();
+  if (
+    key.includes("belanj") ||
+    key.includes("shopping") ||
+    key.includes("shopping-cart")
+  )
+    return <ShoppingCart className="w-4 h-4" />;
+  if (key.includes("game")) return <Gamepad className="w-4 h-4" />;
+  if (key.includes("hibur")) return <Film className="w-4 h-4" />;
+  if (key.includes("makan")) return <CookingPot className="w-4 h-4" />;
+  if (key.includes("tagihan")) return <FileText className="w-4 h-4" />;
+  if (key.includes("mobil")) return <Truck className="w-4 h-4" />;
+  if (key.includes("rokok")) return <CigaretteIcon className="w-4 h-4" />;
+  return <Tag className="w-4 h-4" />;
+}
+
 export function ExpenseTypePills({
   items,
   value,
@@ -25,22 +45,6 @@ export function ExpenseTypePills({
   disabled,
   className,
 }: ExpenseTypePillsProps) {
-  function getIconFor(iconName: string | null | undefined, label?: string) {
-    const key = (iconName || label || "").toString().toLowerCase();
-    if (
-      key.includes("belanj") ||
-      key.includes("shopping") ||
-      key.includes("shopping-cart")
-    )
-      return <ShoppingCart className="w-4 h-4" />;
-    if (key.includes("game")) return <Gamepad className="w-4 h-4" />;
-    if (key.includes("hibur")) return <Film className="w-4 h-4" />;
-    if (key.includes("makan")) return <CookingPot className="w-4 h-4" />;
-    if (key.includes("tagihan")) return <FileText className="w-4 h-4" />;
-    if (key.includes("mobil")) return <Truck className="w-4 h-4" />;
-    if (key.includes("rokok")) return <CigaretteIcon className="w-4 h-4" />;
-    return <Tag className="w-4 h-4" />;
-  }
   return (
     <div className={"flex flex-wrap gap-2 " + (className || "")}>
       {items.map((it) => {
@@ -60,7 +64,7 @@ export function ExpenseTypePills({
             }
           >
             <span aria-hidden="true" className="leading-none">
-              {getIconFor(it.icon, it.label)}
+              {getExpenseTypeIcon(it.icon, it.label)}
             </span>
             <span>{it.label}</span>
           </button>
