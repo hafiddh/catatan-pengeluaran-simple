@@ -3,11 +3,11 @@ import showToast from "@/lib/simpleToast";
 import { listExpenseTypes, type ExpenseType } from "@/service/expense-types";
 import { listShoppingNotes, type ShoppingNote } from "@/service/notes";
 import {
-    CalendarRange,
-    ChevronDown,
-    LoaderCircle,
-    RefreshCcw,
-    Wallet,
+  CalendarRange,
+  ChevronDown,
+  LoaderCircle,
+  RefreshCcw,
+  Wallet,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -146,7 +146,7 @@ export function LaporanPage() {
   return (
     <main className="pt-6 pb-12">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
-        <section className="rounded-2xl border border-gray-200 bg-white p-3 shadow-lg dark:border-slate-700 dark:bg-slate-900 sm:p-6">
+        <section className="rounded-3xl border border-white/45 bg-white/35 p-3 shadow-[0_20px_50px_rgba(15,23,42,0.12)] backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/35 supports-backdrop-filter:bg-white/25 dark:supports-backdrop-filter:bg-slate-900/25 sm:p-6">
           <button
             type="button"
             onClick={() => setIsFilterOpen((current) => !current)}
@@ -167,7 +167,7 @@ export function LaporanPage() {
               <span className="hidden text-xs font-medium text-gray-500 dark:text-slate-300 sm:inline">
                 {isFilterOpen ? "Tutup" : "Buka"}
               </span>
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-gray-300 text-gray-700 transition dark:border-slate-600 dark:text-slate-200">
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl border border-white/45 bg-white/35 text-slate-700 transition-all duration-300 ease-out dark:border-slate-700/70 dark:bg-slate-900/35 dark:text-slate-200">
                 <ChevronDown
                   className={
                     "h-4 w-4 transition-transform duration-200 " +
@@ -198,7 +198,7 @@ export function LaporanPage() {
                     value={startDate}
                     max={endDate || undefined}
                     onChange={(event) => setStartDate(event.target.value)}
-                    className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-cyan-500 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100"
+                    className="w-full rounded-2xl border border-white/45 bg-white/35 px-4 py-3 text-sm text-slate-900 outline-none shadow-[0_14px_36px_rgba(15,23,42,0.08)] backdrop-blur-sm transition-all duration-300 ease-out focus:ring-2 focus:ring-slate-300/60 dark:border-slate-700/70 dark:bg-slate-900/35 dark:text-slate-100 dark:focus:ring-slate-500/50 supports-backdrop-filter:bg-white/25 dark:supports-backdrop-filter:bg-slate-900/25"
                   />
                 </label>
 
@@ -211,7 +211,7 @@ export function LaporanPage() {
                     value={endDate}
                     min={startDate || undefined}
                     onChange={(event) => setEndDate(event.target.value)}
-                    className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-cyan-500 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100"
+                    className="w-full rounded-2xl border border-white/45 bg-white/35 px-4 py-3 text-sm text-slate-900 outline-none shadow-[0_14px_36px_rgba(15,23,42,0.08)] backdrop-blur-sm transition-all duration-300 ease-out focus:ring-2 focus:ring-slate-300/60 dark:border-slate-700/70 dark:bg-slate-900/35 dark:text-slate-100 dark:focus:ring-slate-500/50 supports-backdrop-filter:bg-white/25 dark:supports-backdrop-filter:bg-slate-900/25"
                   />
                 </label>
               </div>
@@ -223,7 +223,7 @@ export function LaporanPage() {
                     setEndDate(getTodayLocalISODate());
                   }}
                   disabled={isLoading || isRefreshing}
-                  className="inline-flex text-xs cursor-pointer items-center justify-center gap-2 rounded-xl border border-gray-300 px-2 py-2  font-semibold text-gray-900 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-800"
+                  className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl border border-white/45 bg-white/35 px-3 py-2 text-xs font-semibold text-slate-900 shadow-[0_10px_24px_rgba(15,23,42,0.08)] backdrop-blur-sm transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-white/50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700/70 dark:bg-slate-900/35 dark:text-slate-100 dark:hover:bg-slate-800/45"
                 >
                   <RefreshCcw
                     className={
@@ -237,7 +237,7 @@ export function LaporanPage() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-lg dark:border-slate-700 dark:bg-slate-900 sm:p-6">
+        <section className="rounded-3xl border border-white/45 bg-white/35 p-5 shadow-[0_20px_50px_rgba(15,23,42,0.12)] backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/35 supports-backdrop-filter:bg-white/25 dark:supports-backdrop-filter:bg-slate-900/25 sm:p-6">
           <div className="mb-5 flex items-center gap-2">
             <Wallet className="h-4 w-4 text-cyan-600 dark:text-cyan-300" />
             <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">
@@ -258,7 +258,7 @@ export function LaporanPage() {
             <>
               <div className="grid gap-4 md:grid-cols-3 w-full">
                 <div className="flex w-full gap-3">
-                  <div className="rounded-2xl w-full border border-gray-200 bg-gray-50 px-4 py-2 dark:border-slate-700 dark:bg-slate-800/60">
+                  <div className="w-full  rounded-2xl border border-white/45 bg-white/35 px-4 py-3 shadow-[0_10px_24px_rgba(15,23,42,0.08)] backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/35">
                     <p className="text-sm text-gray-500 dark:text-slate-300">
                       Total data
                     </p>
@@ -266,7 +266,7 @@ export function LaporanPage() {
                       {filteredNotes.length}
                     </p>
                   </div>
-                  <div className="rounded-2xl w-full border border-gray-200 bg-gray-50 px-4 py-2 dark:border-slate-700 dark:bg-slate-800/60">
+                  <div className="w-full rounded-2xl border border-white/45 bg-white/35 px-4 py-3 shadow-[0_10px_24px_rgba(15,23,42,0.08)] backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/35">
                     <p className="text-sm text-gray-500 dark:text-slate-300">
                       Jumlah kategori
                     </p>
@@ -275,17 +275,17 @@ export function LaporanPage() {
                     </p>
                   </div>
                 </div>
-                <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-2 dark:border-slate-700 dark:bg-slate-800/60">
+                <div className="rounded-2xl border border-white/45 bg-white/35 px-4 py-3 shadow-[0_10px_24px_rgba(15,23,42,0.08)] backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/35">
                   <p className="text-sm text-gray-500 dark:text-slate-300">
                     Total nominal
                   </p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-slate-100">
-                    {formatCurrency(summaryTotalAmount)}
+                  <p className="text-2xl text-center font-bold text-gray-900 dark:text-slate-100 *:93">
+                    {formatCurrency(summaryTotalAmount)}0
                   </p>
                 </div>
               </div>
 
-              <div className="mt-6 overflow-hidden rounded-2xl border border-gray-200 dark:border-slate-700">
+              <div className="mt-6 overflow-hidden rounded-2xl border border-white/45 bg-white/20 dark:border-slate-700/70 dark:bg-slate-900/20">
                 {summary.length === 0 ? (
                   <div className="px-5 py-8 text-center text-sm text-gray-500 dark:text-slate-300">
                     Belum ada summary untuk filter yang dipilih.

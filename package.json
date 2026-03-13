@@ -11,13 +11,13 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/node": "^9.5.4",
-    "@astrojs/react": "^4.4.2",
+    "@astrojs/node": "^10.0.1",
+    "@astrojs/react": "^5.0.0",
     "@react-oauth/google": "^0.13.4",
     "@tailwindcss/vite": "^4.2.1",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "astro": "^5.17.1",
+    "astro": "^6.0.4",
     "framer-motion": "^12.34.5",
     "js-cookie": "^3.0.5",
     "jwt-decode": "^4.0.0",

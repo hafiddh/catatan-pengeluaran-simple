@@ -159,7 +159,7 @@ export const Dashboard = () => {
             type="button"
             onClick={onSave}
             disabled={isSaving}
-            className="inline-flex cursor-pointer text-sm items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-300 bg-gray-900 text-white font-semibold disabled:opacity-60 disabled:cursor-not-allowed dark:bg-slate-100 dark:text-slate-900"
+            className="inline-flex cursor-pointer items-center gap-2 rounded-2xl border border-white/70 bg-white/75 px-3.5 py-2 text-sm font-semibold text-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_12px_28px_rgba(148,163,184,0.16)] backdrop-blur-sm transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-white/85 focus:outline-none focus:ring-2 focus:ring-slate-300/60 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-600/80 dark:bg-slate-800/80 dark:text-slate-100 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_12px_28px_rgba(15,23,42,0.45)] dark:hover:bg-slate-700/85 dark:focus:ring-slate-500/50"
           >
             {isSaving ? (
               <>

@@ -11,7 +11,7 @@ type AppleDatePickerProps = {
 
 const ITEM_HEIGHT = 40;
 const VISIBLE_ITEMS = 1;
-const PADDING_ITEMS = 1;
+const PADDING_ITEMS = 0.5;
 
 const MONTH_LABELS_ID = [
   "Jan",
@@ -134,9 +134,9 @@ function WheelColumn({
         role="listbox"
         tabIndex={disabled ? -1 : 0}
         onScroll={onScroll}
-        className="hide-scrollbar overflow-y-auto"
+        className="relative z-10 hide-scrollbar overflow-y-auto"
         style={{
-          height: ITEM_HEIGHT * VISIBLE_ITEMS,
+          height: ITEM_HEIGHT * (VISIBLE_ITEMS + PADDING_ITEMS * 2),
           paddingTop: ITEM_HEIGHT * PADDING_ITEMS,
           paddingBottom: ITEM_HEIGHT * PADDING_ITEMS,
           scrollSnapType: "y mandatory",
@@ -156,10 +156,10 @@ function WheelColumn({
               aria-selected={selected}
               onClick={() => onSelectIndex(idx)}
               className={
-                "w-full text-center rounded-md select-none " +
+                "relative z-10 w-full rounded-xl text-center select-none transition-all duration-300 ease-out " +
                 (selected
-                  ? "text-gray-900 dark:text-slate-100 font-semibold"
-                  : "text-gray-500 dark:text-slate-300")
+                  ? "font-semibold text-slate-900 dark:text-white"
+                  : "text-slate-400 dark:text-slate-500")
               }
               style={{
                 height: ITEM_HEIGHT,
@@ -174,14 +174,14 @@ function WheelColumn({
 
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute left-0 right-0"
+        className="pointer-events-none absolute left-0 right-0 z-0"
         style={{
           top: "50%",
           height: ITEM_HEIGHT,
           transform: "translateY(-50%)",
         }}
       >
-        <div className="h-full rounded-md border border-gray-200/80 bg-gray-50/70 dark:border-slate-700 dark:bg-slate-800/40" />
+        <div className="h-full rounded-xl border border-white/55 bg-white/60 shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_10px_24px_rgba(148,163,184,0.12)] backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-800/55" />
       </div>
     </div>
   );
@@ -262,7 +262,7 @@ export function AppleDatePicker({
   return (
     <div
       className={
-        "w-full rounded-lg border border-gray-300 bg-white px-2 py-2 dark:bg-slate-900 dark:border-slate-600 " +
+        "w-full rounded-2xl border border-white/45 bg-white/35 px-2.5 py-2.5 shadow-[0_14px_36px_rgba(15,23,42,0.08)] backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/35 supports-backdrop-filter:bg-white/25 dark:supports-backdrop-filter:bg-slate-900/25 " +
         (className || "")
       }
     >

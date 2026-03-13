@@ -68,9 +68,7 @@ export function AmountInput({
       inputMode="numeric"
       disabled={disabled}
       className={
-        "w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 " +
-        "text-center font-bold " +
-        "dark:bg-slate-900 dark:border-slate-600 dark:text-slate-100 " +
+        "w-full rounded-2xl border border-white/45 bg-white/35 px-3.5 py-2.5 text-center font-bold text-slate-900 shadow-[0_14px_36px_rgba(15,23,42,0.08)] backdrop-blur-sm transition-all duration-300 ease-out focus:outline-none focus:ring-2 focus:ring-slate-300/60 dark:border-slate-700/70 dark:bg-slate-900/35 dark:text-slate-100 dark:focus:ring-slate-500/50 supports-backdrop-filter:bg-white/25 dark:supports-backdrop-filter:bg-slate-900/25 " +
         (className || "")
       }
       value={display}

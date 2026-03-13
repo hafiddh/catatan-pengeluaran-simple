@@ -46,7 +46,7 @@ export function ExpenseTypePills({
   className,
 }: ExpenseTypePillsProps) {
   return (
-    <div className={"flex flex-wrap gap-2 " + (className || "")}>
+    <div className={"flex flex-wrap gap-1.5 " + (className || "")}>
       {items.map((it) => {
         const selected = it.id === value;
         return (
@@ -57,16 +57,32 @@ export function ExpenseTypePills({
             aria-pressed={selected}
             onClick={() => onChange(it.id)}
             className={
-              "inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed hover:cursor-pointer" +
+              "group inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold backdrop-blur-sm transition-all duration-300 ease-out disabled:cursor-not-allowed disabled:opacity-60 hover:cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-300/60 dark:focus:ring-slate-500/50 sm:text-sm " +
               (selected
-                ? " border-gray-900 bg-gray-900 text-white dark:border-slate-100 dark:bg-slate-100 dark:text-slate-900"
-                : " border-gray-300 bg-white text-gray-900 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100")
+                ? "-translate-y-0.5 border-white/70 bg-white/70 text-slate-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_12px_28px_rgba(148,163,184,0.16)] dark:border-slate-600/80 dark:bg-slate-800/80 dark:text-white"
+                : "border-white/45 bg-white/35 text-slate-700 hover:-translate-y-0.5 hover:bg-white/50 hover:text-slate-900 dark:border-slate-700/70 dark:bg-slate-900/35 dark:text-slate-200 dark:hover:bg-slate-800/45 dark:hover:text-slate-50")
             }
           >
-            <span aria-hidden="true" className="leading-none">
+            <span
+              aria-hidden="true"
+              className={
+                "flex h-6 w-6 items-center justify-center rounded-full border leading-none transition-all duration-300 ease-out sm:h-7 sm:w-7 " +
+                (selected
+                  ? "border-slate-200 bg-white/90 text-slate-800 shadow-[0_8px_20px_rgba(148,163,184,0.18)] dark:border-slate-600/80 dark:bg-slate-700/70 dark:text-slate-100"
+                  : "border-transparent bg-transparent text-current group-hover:border-white/35 group-hover:bg-white/20 dark:group-hover:border-slate-700/70 dark:group-hover:bg-slate-800/35")
+              }
+            >
               {getExpenseTypeIcon(it.icon, it.label)}
             </span>
-            <span>{it.label}</span>
+            <span
+              className={
+                selected
+                  ? "tracking-[0.01em] text-slate-700 dark:text-slate-100"
+                  : "text-current"
+              }
+            >
+              {it.label}
+            </span>
           </button>
         );
       })}

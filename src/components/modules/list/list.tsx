@@ -1,27 +1,27 @@
 import { AmountInput } from "@/components/ui/amount-input";
 import { AppleDatePicker } from "@/components/ui/apple-date-picker";
 import {
-    ExpenseTypePills,
-    getExpenseTypeIcon,
+  ExpenseTypePills,
+  getExpenseTypeIcon,
 } from "@/components/ui/expense-type-pills";
 import showToast from "@/lib/simpleToast";
 import { listExpenseTypes, type ExpenseType } from "@/service/expense-types";
 import {
-    deleteShoppingNote,
-    listShoppingNotes,
-    updateShoppingNote,
-    type ShoppingNote,
+  deleteShoppingNote,
+  listShoppingNotes,
+  updateShoppingNote,
+  type ShoppingNote,
 } from "@/service/notes";
 import {
-    CalendarRange,
-    ChevronDown,
-    LoaderCircle,
-    Pencil,
-    RefreshCcw,
-    Save,
-    Tag,
-    Trash2,
-    Wallet
+  CalendarRange,
+  ChevronDown,
+  LoaderCircle,
+  Pencil,
+  RefreshCcw,
+  Save,
+  Tag,
+  Trash2,
+  Wallet,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -292,7 +292,7 @@ export function ListNotesPage() {
   return (
     <main className="min-h-screen pt-6 pb-12">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
-        <section className="rounded-2xl border border-gray-200 bg-white p-3 shadow-lg dark:border-slate-700 dark:bg-slate-900 sm:p-6">
+        <section className="rounded-3xl border border-white/45 bg-white/35 p-3 shadow-[0_20px_50px_rgba(15,23,42,0.12)] backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/35 supports-backdrop-filter:bg-white/25 dark:supports-backdrop-filter:bg-slate-900/25 sm:p-6">
           <button
             type="button"
             onClick={() => setIsFilterOpen((current) => !current)}
@@ -313,7 +313,7 @@ export function ListNotesPage() {
               <span className="hidden text-xs font-medium text-gray-500 dark:text-slate-300 sm:inline">
                 {isFilterOpen ? "Tutup" : "Buka"}
               </span>
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-gray-300 text-gray-700 transition dark:border-slate-600 dark:text-slate-200">
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl border border-white/45 bg-white/35 text-slate-700 transition-all duration-300 ease-out dark:border-slate-700/70 dark:bg-slate-900/35 dark:text-slate-200">
                 <ChevronDown
                   className={
                     "h-4 w-4 transition-transform duration-200 " +
@@ -344,7 +344,7 @@ export function ListNotesPage() {
                     value={startDate}
                     max={endDate || undefined}
                     onChange={(event) => setStartDate(event.target.value)}
-                    className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-cyan-500 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100"
+                    className="w-full rounded-2xl border border-white/45 bg-white/35 px-4 py-3 text-sm text-slate-900 outline-none shadow-[0_14px_36px_rgba(15,23,42,0.08)] backdrop-blur-sm transition-all duration-300 ease-out focus:ring-2 focus:ring-slate-300/60 dark:border-slate-700/70 dark:bg-slate-900/35 dark:text-slate-100 dark:focus:ring-slate-500/50 supports-backdrop-filter:bg-white/25 dark:supports-backdrop-filter:bg-slate-900/25"
                   />
                 </label>
 
@@ -357,7 +357,7 @@ export function ListNotesPage() {
                     value={endDate}
                     min={startDate || undefined}
                     onChange={(event) => setEndDate(event.target.value)}
-                    className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-cyan-500 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100"
+                    className="w-full rounded-2xl border border-white/45 bg-white/35 px-4 py-3 text-sm text-slate-900 outline-none shadow-[0_14px_36px_rgba(15,23,42,0.08)] backdrop-blur-sm transition-all duration-300 ease-out focus:ring-2 focus:ring-slate-300/60 dark:border-slate-700/70 dark:bg-slate-900/35 dark:text-slate-100 dark:focus:ring-slate-500/50 supports-backdrop-filter:bg-white/25 dark:supports-backdrop-filter:bg-slate-900/25"
                   />
                 </label>
               </div>
@@ -369,7 +369,7 @@ export function ListNotesPage() {
                     setEndDate(getTodayLocalISODate());
                   }}
                   disabled={isLoading || isRefreshing}
-                  className="inline-flex text-xs cursor-pointer items-center justify-center gap-2 rounded-xl border border-gray-300 px-2 py-2  font-semibold text-gray-900 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-800"
+                  className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl border border-white/45 bg-white/35 px-3 py-2 text-xs font-semibold text-slate-900 shadow-[0_10px_24px_rgba(15,23,42,0.08)] backdrop-blur-sm transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-white/50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700/70 dark:bg-slate-900/35 dark:text-slate-100 dark:hover:bg-slate-800/45"
                 >
                   <RefreshCcw
                     className={
@@ -383,11 +383,14 @@ export function ListNotesPage() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-gray-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-900">
-          <div className="border-b border-gray-200 px-5 py-4 dark:border-slate-700 sm:px-6">
-            <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">
-              Data pengeluaran
-            </h2>
+        <section className="rounded-3xl border border-white/45 bg-white/35 shadow-[0_20px_50px_rgba(15,23,42,0.12)] backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/35 supports-backdrop-filter:bg-white/25 dark:supports-backdrop-filter:bg-slate-900/25">
+          <div className="border-b border-white/40 px-5 py-4 dark:border-slate-700/70 sm:px-6">
+            <div className="flex items-center gap-2">
+              <Wallet className="h-4 w-4 text-cyan-600 dark:text-cyan-300" />
+              <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">
+                Data Pengeluaran
+              </h2>
+            </div>
           </div>
 
           {isLoading ? (
@@ -438,7 +441,7 @@ export function ListNotesPage() {
                             onClick={() => openEditModal(note)}
                             aria-label={`Edit catatan ${formatDate(note.tanggal)}`}
                             title="Edit"
-                            className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-amber-300 bg-amber-50 text-amber-700 transition hover:bg-amber-100 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200"
+                            className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-2xl border border-white/45 bg-white/35 text-slate-700 shadow-[0_10px_24px_rgba(15,23,42,0.08)] backdrop-blur-sm transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-white/50 dark:border-slate-700/70 dark:bg-slate-900/35 dark:text-slate-200 dark:hover:bg-slate-800/45"
                           >
                             <Pencil className="h-3.5 w-3.5" />
                           </button>
@@ -449,7 +452,7 @@ export function ListNotesPage() {
                             disabled={deletingId === note.id}
                             aria-label={`Hapus catatan ${formatDate(note.tanggal)}`}
                             title="Hapus"
-                            className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-red-300 bg-red-50 text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200"
+                            className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-2xl border border-red-200/70 bg-red-50/75 text-red-700 shadow-[0_10px_24px_rgba(239,68,68,0.12)] backdrop-blur-sm transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-red-100/80 disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-900/80 dark:bg-red-950/35 dark:text-red-200 dark:hover:bg-red-900/35"
                           >
                             {deletingId === note.id ? (
                               <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
@@ -517,7 +520,7 @@ export function ListNotesPage() {
                                 onClick={() => openEditModal(note)}
                                 aria-label={`Edit catatan ${formatDate(note.tanggal)}`}
                                 title="Edit"
-                                className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-amber-300 bg-amber-50 text-amber-700 transition hover:bg-amber-100 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200"
+                                className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-2xl border border-white/45 bg-white/35 text-slate-700 shadow-[0_10px_24px_rgba(15,23,42,0.08)] backdrop-blur-sm transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-white/50 dark:border-slate-700/70 dark:bg-slate-900/35 dark:text-slate-200 dark:hover:bg-slate-800/45"
                               >
                                 <Pencil className="h-3.5 w-3.5" />
                               </button>
@@ -528,7 +531,7 @@ export function ListNotesPage() {
                                 disabled={deletingId === note.id}
                                 aria-label={`Hapus catatan ${formatDate(note.tanggal)}`}
                                 title="Hapus"
-                                className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-red-300 bg-red-50 text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200"
+                                className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-2xl border border-red-200/70 bg-red-50/75 text-red-700 shadow-[0_10px_24px_rgba(239,68,68,0.12)] backdrop-blur-sm transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-red-100/80 disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-900/80 dark:bg-red-950/35 dark:text-red-200 dark:hover:bg-red-900/35"
                               >
                                 {deletingId === note.id ? (
                                   <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
@@ -545,7 +548,7 @@ export function ListNotesPage() {
                 </table>
               </div>
 
-              <div className="flex flex-col gap-4 border-t border-gray-200 px-5 py-4 dark:border-slate-700 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+              <div className="flex flex-col gap-4 border-t border-white/40 px-5 py-4 dark:border-slate-700/70 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                 <p className="text-sm text-gray-500 dark:text-slate-300">
                   Menampilkan{" "}
                   <strong className="text-gray-900 dark:text-slate-100">
@@ -569,7 +572,7 @@ export function ListNotesPage() {
                     onClick={() =>
                       setCurrentPage((page) => Math.max(1, page - 1))
                     }
-                    className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-900 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-800"
+                    className="rounded-2xl border border-white/45 bg-white/35 px-3 py-2 text-sm font-semibold text-slate-900 shadow-[0_10px_24px_rgba(15,23,42,0.08)] backdrop-blur-sm transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-white/50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700/70 dark:bg-slate-900/35 dark:text-slate-100 dark:hover:bg-slate-800/45"
                   >
                     Sebelumnya
                   </button>
@@ -584,7 +587,7 @@ export function ListNotesPage() {
                     onClick={() =>
                       setCurrentPage((page) => Math.min(totalPages, page + 1))
                     }
-                    className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-900 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-800"
+                    className="rounded-2xl border border-white/45 bg-white/35 px-3 py-2 text-sm font-semibold text-slate-900 shadow-[0_10px_24px_rgba(15,23,42,0.08)] backdrop-blur-sm transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-white/50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700/70 dark:bg-slate-900/35 dark:text-slate-100 dark:hover:bg-slate-800/45"
                   >
                     Berikutnya
                   </button>
@@ -599,7 +602,7 @@ export function ListNotesPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 px-3 backdrop-blur-sm">
           <div className="absolute inset-0" onClick={() => closeEditModal()} />
 
-          <section className="p-3 relative z-10 max-h-[90vh] w-full max-w-2xl overflow-auto rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900 sm:p-6">
+          <section className="relative z-10 max-h-[90vh] w-full max-w-2xl overflow-auto rounded-3xl border border-white/45 bg-white/35 p-3 shadow-[0_24px_60px_rgba(15,23,42,0.22)] backdrop-blur-md dark:border-slate-700/70 dark:bg-slate-900/40 sm:p-6">
             {/* <div className="flex items-start justify-between gap-4">
               <div> 
               </div>
@@ -660,7 +663,7 @@ export function ListNotesPage() {
                 type="button"
                 onClick={() => closeEditModal()}
                 disabled={isSubmittingEdit}
-                className="inline-flex cursor-pointer items-center justify-center rounded-xl border border-gray-300 px-4 py-3 text-sm font-semibold text-gray-900 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-800"
+                className="inline-flex cursor-pointer items-center justify-center rounded-2xl border border-white/45 bg-white/35 px-4 py-3 text-sm font-semibold text-slate-900 shadow-[0_10px_24px_rgba(15,23,42,0.08)] backdrop-blur-sm transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-white/50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700/70 dark:bg-slate-900/35 dark:text-slate-100 dark:hover:bg-slate-800/45"
               >
                 Batal
               </button>
@@ -669,7 +672,7 @@ export function ListNotesPage() {
                 type="button"
                 onClick={handleUpdate}
                 disabled={isSubmittingEdit}
-                className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-gray-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-60 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
+                className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl border border-white/70 bg-white/75 px-4 py-3 text-sm font-semibold text-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_12px_28px_rgba(148,163,184,0.16)] backdrop-blur-sm transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-white/85 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-600/80 dark:bg-slate-800/80 dark:text-slate-100 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_12px_28px_rgba(15,23,42,0.45)] dark:hover:bg-slate-700/85"
               >
                 {isSubmittingEdit ? (
                   <>
@@ -683,7 +686,7 @@ export function ListNotesPage() {
                   </>
                 )}
               </button>
-            </div> 
+            </div>
           </section>
         </div>
       ) : null}
@@ -692,7 +695,7 @@ export function ListNotesPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 px-3 backdrop-blur-sm">
           <div className="absolute inset-0" onClick={closeDeleteModal} />
 
-          <section className="relative z-10 w-full max-w-md rounded-2xl border border-gray-200 bg-white p-4 shadow-2xl dark:border-slate-700 dark:bg-slate-900 sm:p-5">
+          <section className="relative z-10 w-full max-w-md rounded-3xl border border-white/45 bg-white/35 p-4 shadow-[0_24px_60px_rgba(15,23,42,0.22)] backdrop-blur-md dark:border-slate-700/70 dark:bg-slate-900/40 sm:p-5">
             <div className="flex items-start gap-3">
               <div className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-red-200 bg-red-50 text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200">
                 <Trash2 className="h-5 w-5" />
@@ -703,19 +706,15 @@ export function ListNotesPage() {
                   Hapus catatan?
                 </h3>
                 <p className="mt-1 text-sm text-gray-500 dark:text-slate-300">
-                  Catatan
-                  {" "}
+                  Catatan{" "}
                   <span className="font-medium text-gray-900 dark:text-slate-100">
                     {expenseTypeMap.get(pendingDeleteNote.kategori_id)?.label ||
                       "tanpa kategori"}
-                  </span>
-                  {" "}
-                  pada tanggal
-                  {" "}
+                  </span>{" "}
+                  pada tanggal{" "}
                   <span className="font-medium text-gray-900 dark:text-slate-100">
                     {formatDate(pendingDeleteNote.tanggal)}
-                  </span>
-                  {" "}
+                  </span>{" "}
                   akan dihapus permanen dari daftar.
                 </p>
               </div>
@@ -726,7 +725,7 @@ export function ListNotesPage() {
                 type="button"
                 onClick={closeDeleteModal}
                 disabled={!!deletingId}
-                className="inline-flex cursor-pointer items-center justify-center rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-900 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-800"
+                className="inline-flex cursor-pointer items-center justify-center rounded-2xl border border-white/45 bg-white/35 px-4 py-2.5 text-sm font-semibold text-slate-900 shadow-[0_10px_24px_rgba(15,23,42,0.08)] backdrop-blur-sm transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-white/50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700/70 dark:bg-slate-900/35 dark:text-slate-100 dark:hover:bg-slate-800/45"
               >
                 Batal
               </button>
@@ -735,7 +734,7 @@ export function ListNotesPage() {
                 type="button"
                 onClick={confirmDelete}
                 disabled={!!deletingId}
-                className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-red-300 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200"
+                className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl border border-red-200/70 bg-red-50/75 px-4 py-2.5 text-sm font-semibold text-red-700 shadow-[0_10px_24px_rgba(239,68,68,0.12)] backdrop-blur-sm transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-red-100/80 disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-900/80 dark:bg-red-950/35 dark:text-red-200 dark:hover:bg-red-900/35"
               >
                 {deletingId ? (
                   <>
