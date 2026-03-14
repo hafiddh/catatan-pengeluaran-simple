@@ -1,3 +1,4 @@
+import { hasStoredAuth } from "@/lib/auth-session";
 import showToast from "@/lib/simpleToast";
 import { listExpenseTypes, type ExpenseType } from "@/service/expense-types";
 import { createShoppingNote } from "@/service/notes";
@@ -32,6 +33,8 @@ export const Dashboard = () => {
     }
   }, []);
 
+  const canRefreshSession = useMemo(() => hasStoredAuth(), []);
+
   // use simple DOM toast
 
   useEffect(() => {
@@ -39,7 +42,7 @@ export const Dashboard = () => {
 
     const load = async () => {
       setExpenseTypesError("");
-      if (!token) return;
+      if (!token && !canRefreshSession) return;
 
       setIsLoadingExpenseTypes(true);
       try {
@@ -65,7 +68,7 @@ export const Dashboard = () => {
     return () => {
       active = false;
     };
-  }, [token]);
+  }, [canRefreshSession, token]);
 
   const onSave = async () => {
     const parsedAmount = Number(amount);

@@ -1,27 +1,28 @@
 import { AmountInput } from "@/components/ui/amount-input";
 import { AppleDatePicker } from "@/components/ui/apple-date-picker";
 import {
-  ExpenseTypePills,
-  getExpenseTypeIcon,
+    ExpenseTypePills,
+    getExpenseTypeIcon,
 } from "@/components/ui/expense-type-pills";
+import { hasStoredAuth } from "@/lib/auth-session";
 import showToast from "@/lib/simpleToast";
 import { listExpenseTypes, type ExpenseType } from "@/service/expense-types";
 import {
-  deleteShoppingNote,
-  listShoppingNotes,
-  updateShoppingNote,
-  type ShoppingNote,
+    deleteShoppingNote,
+    listShoppingNotes,
+    updateShoppingNote,
+    type ShoppingNote,
 } from "@/service/notes";
 import {
-  CalendarRange,
-  ChevronDown,
-  LoaderCircle,
-  Pencil,
-  RefreshCcw,
-  Save,
-  Tag,
-  Trash2,
-  Wallet,
+    CalendarRange,
+    ChevronDown,
+    LoaderCircle,
+    Pencil,
+    RefreshCcw,
+    Save,
+    Tag,
+    Trash2,
+    Wallet,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -91,12 +92,14 @@ export function ListNotesPage() {
     }
   }, []);
 
+  const canRefreshSession = useMemo(() => hasStoredAuth(), []);
+
   const expenseTypeMap = useMemo(() => {
     return new Map(expenseTypes.map((item) => [item.id, item]));
   }, [expenseTypes]);
 
   const fetchData = async (withLoader: boolean) => {
-    if (!token) {
+    if (!token && !canRefreshSession) {
       setIsLoading(false);
       setError("Anda belum login");
       try {
@@ -134,7 +137,7 @@ export function ListNotesPage() {
 
   useEffect(() => {
     fetchData(true);
-  }, [token]);
+  }, [canRefreshSession, token]);
 
   useEffect(() => {
     setCurrentPage(1);

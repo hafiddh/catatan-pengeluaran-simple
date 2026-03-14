@@ -8,7 +8,8 @@ import { LoginWithGoogleProvider } from "@/components/modules/login/login-with-g
     (() => {
       try { 
         const token = localStorage.getItem("auth_token");
-        if (token) {
+        const refreshToken = localStorage.getItem("auth_refresh_token");
+        if (token || refreshToken) {
           window.location.href = "/dashboard";
           return;
         }

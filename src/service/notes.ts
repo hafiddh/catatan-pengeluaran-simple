@@ -1,3 +1,5 @@
+import { authorizedFetch, getErrorMessage } from "@/lib/api";
+
 export type CreateShoppingNoteRequest = {
   tanggal: string;
   jumlah: number;
@@ -17,39 +19,24 @@ export type ShoppingNote = {
   deleted_at?: string | null;
 };
 
-const API_BASE_URL = (
-  import.meta.env.PUBLIC_API_BE_URL ??
-  import.meta.env.PUBLIC_API_BASE_URL ??
-  import.meta.env.API_BE_URL ??
-  "http://localhost:3061"
-)
-  .toString()
-  .replace(/\/+$/, "");
-
 export async function createShoppingNote(
   token: string,
   payload: CreateShoppingNoteRequest,
 ): Promise<ShoppingNote> {
-  if (!token) throw new Error("Anda belum login");
-
-  const res = await fetch(`${API_BASE_URL}/api/notes`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+  const res = await authorizedFetch(
+    "/api/notes",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
     },
-    body: JSON.stringify(payload),
-  });
+    token,
+  );
 
   if (!res.ok) {
-    let message = "Gagal menyimpan catatan";
-    try {
-      const data = await res.json();
-      if (typeof data?.message === "string") message = data.message;
-    } catch {
-      // ignore
-    }
-    throw new Error(message);
+    throw new Error(await getErrorMessage(res, "Gagal menyimpan catatan"));
   }
 
   return (await res.json()) as ShoppingNote;
@@ -58,24 +45,10 @@ export async function createShoppingNote(
 export async function listShoppingNotes(
   token: string,
 ): Promise<ShoppingNote[]> {
-  if (!token) throw new Error("Anda belum login");
-
-  const res = await fetch(`${API_BASE_URL}/api/notes`, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const res = await authorizedFetch("/api/notes", { method: "GET" }, token);
 
   if (!res.ok) {
-    let message = "Gagal mengambil catatan";
-    try {
-      const data = await res.json();
-      if (typeof data?.message === "string") message = data.message;
-    } catch {
-      // ignore
-    }
-    throw new Error(message);
+    throw new Error(await getErrorMessage(res, "Gagal mengambil catatan"));
   }
 
   return (await res.json()) as ShoppingNote[];
@@ -85,25 +58,12 @@ export async function getShoppingNoteByID(
   token: string,
   id: string,
 ): Promise<ShoppingNote> {
-  if (!token) throw new Error("Anda belum login");
   if (!id) throw new Error("ID catatan tidak valid");
 
-  const res = await fetch(`${API_BASE_URL}/api/notes/${id}`, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const res = await authorizedFetch(`/api/notes/${id}`, { method: "GET" }, token);
 
   if (!res.ok) {
-    let message = "Gagal mengambil catatan";
-    try {
-      const data = await res.json();
-      if (typeof data?.message === "string") message = data.message;
-    } catch {
-      // ignore
-    }
-    throw new Error(message);
+    throw new Error(await getErrorMessage(res, "Gagal mengambil catatan"));
   }
 
   return (await res.json()) as ShoppingNote;
@@ -114,27 +74,22 @@ export async function updateShoppingNote(
   id: string,
   payload: CreateShoppingNoteRequest,
 ): Promise<ShoppingNote> {
-  if (!token) throw new Error("Anda belum login");
   if (!id) throw new Error("ID catatan tidak valid");
 
-  const res = await fetch(`${API_BASE_URL}/api/notes/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+  const res = await authorizedFetch(
+    `/api/notes/${id}`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
     },
-    body: JSON.stringify(payload),
-  });
+    token,
+  );
 
   if (!res.ok) {
-    let message = "Gagal mengubah catatan";
-    try {
-      const data = await res.json();
-      if (typeof data?.message === "string") message = data.message;
-    } catch {
-      // ignore
-    }
-    throw new Error(message);
+    throw new Error(await getErrorMessage(res, "Gagal mengubah catatan"));
   }
 
   return (await res.json()) as ShoppingNote;
@@ -144,24 +99,11 @@ export async function deleteShoppingNote(
   token: string,
   id: string,
 ): Promise<void> {
-  if (!token) throw new Error("Anda belum login");
   if (!id) throw new Error("ID catatan tidak valid");
 
-  const res = await fetch(`${API_BASE_URL}/api/notes/${id}`, {
-    method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const res = await authorizedFetch(`/api/notes/${id}`, { method: "DELETE" }, token);
 
   if (!res.ok) {
-    let message = "Gagal menghapus catatan";
-    try {
-      const data = await res.json();
-      if (typeof data?.message === "string") message = data.message;
-    } catch {
-      // ignore
-    }
-    throw new Error(message);
+    throw new Error(await getErrorMessage(res, "Gagal menghapus catatan"));
   }
 }

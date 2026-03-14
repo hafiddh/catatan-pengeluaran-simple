@@ -1,5 +1,10 @@
 import "@/assets/styles/style.css";
-import { FileText, Home, List, LogOut, Moon, Sun, User } from "lucide-react";
+import {
+  clearAuthSession,
+  getStoredUser,
+  hasStoredAuth,
+} from "@/lib/auth-session";
+import { FileText, Home, List, LogOut, Moon, Sun, User, X } from "lucide-react";
 import React, { useEffect, useState } from "react";
 
 export type LayoutProps = {
@@ -10,23 +15,17 @@ export type LayoutProps = {
 
 export default function Layout({ title, description, children }: LayoutProps) {
   const [profileSrc, setProfileSrc] = useState<string>("");
+  const [profileName, setProfileName] = useState<string>("");
+  const [isProfilePreviewOpen, setIsProfilePreviewOpen] =
+    useState<boolean>(false);
   const [isDark, setIsDark] = useState<boolean>(false);
   const [allowed, setAllowed] = useState<boolean | null>(true);
   const [pathname, setPathname] = useState<string>("");
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem("auth_user");
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed?.picture) setProfileSrc(parsed.picture);
-      } else {
-        const pic = localStorage.getItem("auth_user.picture");
-        if (pic) setProfileSrc(pic);
-      }
-    } catch {
-      // ignore
-    }
+    const user = getStoredUser();
+    if (user?.picture) setProfileSrc(user.picture);
+    if (user?.name) setProfileName(user.name);
   }, []);
 
   useEffect(() => {
@@ -106,9 +105,7 @@ export default function Layout({ title, description, children }: LayoutProps) {
 
   const handleLogout = () => {
     try {
-      try {
-        localStorage.clear();
-      } catch {}
+      clearAuthSession();
       try {
         const cookies = document.cookie ? document.cookie.split(";") : [];
         cookies.forEach(function (c) {
@@ -140,11 +137,7 @@ export default function Layout({ title, description, children }: LayoutProps) {
 
   useEffect(() => {
     try {
-      const token =
-        typeof window !== "undefined"
-          ? localStorage.getItem("auth_token")
-          : null;
-      if (token) setAllowed(true);
+      if (hasStoredAuth()) setAllowed(true);
       else {
         setAllowed(false);
         try {
@@ -166,6 +159,34 @@ export default function Layout({ title, description, children }: LayoutProps) {
       setPathname("");
     }
   }, []);
+
+  useEffect(() => {
+    if (!isProfilePreviewOpen) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsProfilePreviewOpen(false);
+      }
+    };
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [isProfilePreviewOpen]);
+
+  const openProfilePreview = () => {
+    if (!profileSrc) return;
+    setIsProfilePreviewOpen(true);
+  };
+
+  const closeProfilePreview = () => {
+    setIsProfilePreviewOpen(false);
+  };
 
   const navItemClass = (active: boolean, extraClassName = "") =>
     [
@@ -329,25 +350,89 @@ export default function Layout({ title, description, children }: LayoutProps) {
               </div>
             </div>
 
-            <div className="pointer-events-none absolute left-1/2 top-0 z-10 -translate-x-1/2 -translate-y-[36%] transform transition-transform duration-300 ease-out">
-              <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-white/65 bg-white/40 p-0.5 shadow-[0_22px_45px_rgba(15,23,42,0.24)] backdrop-blur-2xl supports-backdrop-filter:bg-white/26 dark:border-slate-700/75 dark:bg-slate-900/40 dark:supports-backdrop-filter:bg-slate-900/24 sm:h-20 sm:w-20">
-                <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full border border-white/40 bg-slate-200/85 shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] dark:border-slate-700/60 dark:bg-slate-800/75">
+            <div className="absolute left-1/2 top-0 z-10 -translate-x-1/2 -translate-y-[36%] transform transition-transform duration-300 ease-out">
+              <button
+                type="button"
+                onClick={openProfilePreview}
+                aria-label={
+                  profileSrc
+                    ? "Lihat foto profil"
+                    : "Foto profil belum tersedia"
+                }
+                aria-haspopup={profileSrc ? "dialog" : undefined}
+                aria-disabled={!profileSrc}
+                className={[
+                  "group flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-white/65 bg-white/40 p-0.5 shadow-[0_22px_45px_rgba(15,23,42,0.24)] backdrop-blur-2xl transition-all duration-300 ease-out supports-backdrop-filter:bg-white/26 dark:border-slate-700/75 dark:bg-slate-900/40 dark:supports-backdrop-filter:bg-slate-900/24 sm:h-20 sm:w-20",
+                  profileSrc
+                    ? "pointer-events-auto cursor-zoom-in hover:scale-[1.04] hover:shadow-[0_26px_52px_rgba(15,23,42,0.28)] focus:outline-none focus:ring-2 focus:ring-slate-300/60 dark:focus:ring-slate-500/50"
+                    : "cursor-default",
+                ].join(" ")}
+              >
+                <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-full border border-white/40 bg-slate-200/85 shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] dark:border-slate-700/60 dark:bg-slate-800/75">
                   {profileSrc ? (
-                    // eslint-disable-next-line jsx-a11y/img-redundant-alt
-                    <img
-                      src={profileSrc}
-                      alt="profile"
-                      className="w-full h-full object-cover"
-                    />
+                    <>
+                      <img
+                        src={profileSrc}
+                        alt={
+                          profileName
+                            ? `Foto profil ${profileName}`
+                            : "Foto profil"
+                        }
+                        className="h-full w-full object-cover"
+                      />
+                      <span className="absolute inset-0 bg-slate-950/0 transition-colors duration-300 group-hover:bg-slate-950/10 dark:group-hover:bg-slate-950/18" />
+                    </>
                   ) : (
                     <User className="h-6 w-6 text-gray-600 dark:text-slate-300 sm:h-8 sm:w-8" />
                   )}
                 </div>
-              </div>
+              </button>
             </div>
           </div>
         </div>
       </nav>
+
+      {isProfilePreviewOpen ? (
+        <div
+          className="fixed inset-0 z-90 flex items-center justify-center   px-4 py-8 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Preview foto profil"
+          onClick={closeProfilePreview}
+        >
+          <div
+            className="relative w-full max-w-md rounded-4xl border border-white/20 bg-white/10 p-3 shadow-[0_30px_80px_rgba(15,23,42,0.45)] backdrop-blur-sm dark:border-slate-700/50 dark:bg-slate-900/25"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={closeProfilePreview}
+              className="absolute right-3 top-3 z-10 inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/35 bg-slate-950/35 text-white transition-all duration-300 ease-out hover:bg-slate-950/55 focus:outline-none focus:ring-2 focus:ring-white/40"
+              aria-label="Tutup preview foto profil"
+            >
+              <X className="h-4.5 w-4.5" />
+            </button>
+
+            <div className="overflow-hidden rounded-[1.6rem] border border-white/20 bg-white/70 dark:bg-slate-900/60">
+              <img
+                src={profileSrc}
+                alt={
+                  profileName
+                    ? `Preview foto profil ${profileName}`
+                    : "Preview foto profil"
+                }
+                className="h-auto max-h-[72vh] w-full object-cover"
+              />
+            </div>
+
+            {profileName ? (
+              <p className="px-2 pb-1 pt-3 text-center text-sm font-medium text-slate-700 dark:text-slate-300">
+                {profileName}
+              </p>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

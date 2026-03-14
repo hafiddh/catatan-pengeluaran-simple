@@ -1,3 +1,4 @@
+import { storeAuthSession } from "@/lib/auth-session";
 import { LoginWithGoogle } from "@/service/login";
 import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
 import { navigate } from "astro:transitions/client";
@@ -94,9 +95,7 @@ export const LoginPage = () => {
     setIsLoggingIn(true);
     try {
       const result = await LoginWithGoogle(credentialResponse.credential || "");
-
-      localStorage.setItem("auth_token", result.token);
-      localStorage.setItem("auth_user", JSON.stringify(result.user));
+      storeAuthSession(result);
       navigate("/dashboard");
     } catch (error: unknown) {
       setGoogleError(

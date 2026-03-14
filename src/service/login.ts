@@ -1,3 +1,5 @@
+import { API_BASE_URL } from "@/lib/api";
+
 export type BackendUser = {
   id: string;
   email: string;
@@ -7,17 +9,13 @@ export type BackendUser = {
 
 export type BackendGoogleLoginResponse = {
   token: string;
+  access_token: string;
+  refresh_token: string;
+  token_type: string;
+  expires_in: number;
+  refresh_expires_in: number;
   user: BackendUser;
 };
-
-const API_BASE_URL = (
-  import.meta.env.PUBLIC_API_BE_URL ??
-  import.meta.env.PUBLIC_API_BASE_URL ??
-  import.meta.env.API_BE_URL ??
-  "http://localhost:3061"
-)
-  .toString()
-  .replace(/\/+$/, "");
 
 export async function LoginWithGoogle(
   credential: string,

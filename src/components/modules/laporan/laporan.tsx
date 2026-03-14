@@ -1,4 +1,5 @@
 import { getExpenseTypeIcon } from "@/components/ui/expense-type-pills";
+import { hasStoredAuth } from "@/lib/auth-session";
 import showToast from "@/lib/simpleToast";
 import { listExpenseTypes, type ExpenseType } from "@/service/expense-types";
 import { listShoppingNotes, type ShoppingNote } from "@/service/notes";
@@ -56,12 +57,14 @@ export function LaporanPage() {
     }
   }, []);
 
+  const canRefreshSession = useMemo(() => hasStoredAuth(), []);
+
   const expenseTypeMap = useMemo(() => {
     return new Map(expenseTypes.map((item) => [item.id, item]));
   }, [expenseTypes]);
 
   const fetchData = async (withLoader: boolean) => {
-    if (!token) {
+    if (!token && !canRefreshSession) {
       setIsLoading(false);
       setError("Anda belum login");
       try {
@@ -99,7 +102,7 @@ export function LaporanPage() {
 
   useEffect(() => {
     fetchData(true);
-  }, [token]);
+  }, [canRefreshSession, token]);
 
   const filteredNotes = useMemo(() => {
     const from = startDate || "0000-01-01";
