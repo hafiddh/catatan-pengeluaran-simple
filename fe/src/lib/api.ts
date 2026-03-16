@@ -11,7 +11,7 @@ export const API_BASE_URL = (
   import.meta.env.PUBLIC_API_BE_URL ??
   import.meta.env.PUBLIC_API_BASE_URL ??
   import.meta.env.API_BE_URL ??
-  "http://localhost:3061"
+  "/api"
 )
   .toString()
   .replace(/\/+$/, "");

@@ -1,0 +1,75 @@
+x-be-env: &a1
+  PORT: "1323"
+  JWT_SECRET: S1Mpl3App4ng3lSuiC1d3
+  NOTES_ENCRYPT_KEY: ganti-dengan-secret-minimal-16-karakter
+  ALLOWED_FRONTEND_ORIGINS: http://localhost:3060,https://catatan-sihafid.joeichiro.my.id
+  DB_DRIVER: mysql
+  DB_HOST: 10.10.0.5
+  DB_PORT: "9998"
+  DB_NAME: catatan
+  DB_USER: hafid
+  DB_PASSWORD: 5uqTzi6UcPf^#k
+  DB_PARAMS: parseTime=true&charset=utf8mb4&loc=Local
+x-face-env: &a3
+  DATABASE_URL: mysql+pymysql://root:@host.docker.internal:3306/face_recognition
+  FACE_API_KEY: F4c3Ap1K3yAng3LSu1C!d3
+  FACE_DATA_DIR: data
+  FACE_TOLERANCE: "0.42"
+  FACE_MIN_PHOTOS: "6"
+  FACE_MAX_PHOTO_MB: "10"
+  FACE_MIN_QUALITY_SCORE: "35"
+x-fe-build-env: &a2
+  PORT: "4321"
+  #PUBLIC_API_BE_URL: https://rxmvmsat21lukf.joeichiro.my.id
+  PUBLIC_API_BE_URL: /api
+services:
+  be:
+    container_name: be
+    build:
+      context: ./be
+      dockerfile: Dockerfile
+    environment:
+      <<: *a1
+    expose:
+      - "1323"
+    restart: unless-stopped
+  fe:
+    container_name: fe
+    build:
+      context: ./fe
+      dockerfile: Dockerfile
+      args:
+        <<: *a2
+    environment:
+      PORT: "4321"
+      <<: *a2
+    expose:
+      - "4321"
+    depends_on:
+      - be
+    restart: unless-stopped
+  face:
+    container_name: face
+    build:
+      context: ./face-services
+      dockerfile: Dockerfile
+    environment:
+      <<: *a3
+    expose:
+      - "8000"
+    volumes:
+      - ./face-services/data:/app/data
+    restart: unless-stopped
+  nginx:
+    container_name: nginx
+    image: nginx:1.27-alpine
+    depends_on:
+      - fe
+      - be
+      - face
+    ports:
+      - 3060:80
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    restart: unless-stopped
+networks: {}
