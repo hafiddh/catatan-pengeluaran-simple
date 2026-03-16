@@ -1,0 +1,9 @@
+# binaries
+bin/
+*.exe
+
+# data
+/data/
+
+# local env
+.env
