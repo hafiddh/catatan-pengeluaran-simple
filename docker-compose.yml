@@ -4,11 +4,11 @@ x-be-env: &a1
   NOTES_ENCRYPT_KEY: ganti-dengan-secret-minimal-16-karakter
   ALLOWED_FRONTEND_ORIGINS: http://localhost:3060,https://catatan-sihafid.joeichiro.my.id
   DB_DRIVER: mysql
-  DB_HOST: 10.10.0.5
-  DB_PORT: "9998"
+  DB_HOST: host.docker.internal
+  DB_PORT: "3306"
   DB_NAME: catatan
-  DB_USER: hafid
-  DB_PASSWORD: 5uqTzi6UcPf^#k
+  DB_USER: root
+  DB_PASSWORD: 
   DB_PARAMS: parseTime=true&charset=utf8mb4&loc=Local
 x-face-env: &a3
   DATABASE_URL: mysql+pymysql://root:@host.docker.internal:3306/face_recognition

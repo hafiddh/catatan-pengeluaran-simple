@@ -283,7 +283,7 @@ export function LaporanPage() {
                     Total nominal
                   </p>
                   <p className="text-2xl text-center font-bold text-gray-900 dark:text-slate-100 *:93">
-                    {formatCurrency(summaryTotalAmount)}0
+                    {formatCurrency(summaryTotalAmount)}
                   </p>
                 </div>
               </div>

@@ -59,7 +59,7 @@ pip install -r requirements.txt
 uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-Swagger tersedia di `http://localhost:8000/docs`.
+Swagger tersedia di `http://localhost:8000/api/docs` untuk akses langsung, atau `http://localhost:3060/face-api/docs` jika lewat Nginx.
 
 ## Frontend
 

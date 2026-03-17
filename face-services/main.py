@@ -3,6 +3,7 @@ import os
 
 from fastapi import Depends, FastAPI, File, Form, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
 from fastapi.responses import FileResponse, PlainTextResponse
 
 from db import init_db
@@ -25,6 +26,7 @@ app = FastAPI(
         "- Update foto untuk user yang sudah terdaftar\n"
     ),
     version="1.0.0",
+    openapi_url="/api/openapi.json",
 )
 
 app.add_middleware(
@@ -47,6 +49,22 @@ face_service = FaceService(
 async def startup_event():
     init_db()
     face_service.reload_cache()
+
+
+@app.get("/api/docs", include_in_schema=False)
+async def custom_swagger_ui_html():
+    return get_swagger_ui_html(
+        openapi_url="./openapi.json",
+        title=f"{app.title} - Swagger UI",
+    )
+
+
+@app.get("/api/redoc", include_in_schema=False)
+async def redoc_html():
+    return get_redoc_html(
+        openapi_url="./openapi.json",
+        title=f"{app.title} - ReDoc",
+    )
 
 
 # ------------------------------------------------------------------ #
