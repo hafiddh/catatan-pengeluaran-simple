@@ -60,6 +60,7 @@ func New(cfg config.Config, db *sql.DB, amountCipher *notecrypto.AmountCipher) *
 
 	notes := handler.NotesHandler{DB: db, AmountCipher: amountCipher}
 	protected.GET("/notes", notes.List)
+	protected.GET("/notes/summary", notes.Summary)
 	protected.GET("/notes/:id", notes.Get)
 	protected.POST("/notes", notes.Create)
 	protected.PUT("/notes/:id", notes.Update)

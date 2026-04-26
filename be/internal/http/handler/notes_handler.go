@@ -3,6 +3,7 @@ package handler
 import (
 	"database/sql"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -23,6 +24,17 @@ type createNoteRequest struct {
 	Jumlah         int64  `json:"jumlah"`
 	JenisTransaksi string `json:"jenis_transaksi"`
 	KategoriID     string `json:"kategori_id"`
+	NamaBarang     string `json:"nama_barang"`
+	JumlahBarang   int64  `json:"jumlah_barang"`
+	Catatan        string `json:"catatan"`
+}
+
+type listNotesResponse struct {
+	Data    []store.ShoppingNote `json:"data"`
+	Total   int                  `json:"total"`
+	Page    int                  `json:"page"`
+	Limit   int                  `json:"limit"`
+	HasNext bool                 `json:"has_next"`
 }
 
 func (h NotesHandler) Create(c *echo.Context) error {
@@ -58,7 +70,7 @@ func (h NotesHandler) Create(c *echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Jumlah harus lebih dari 0")
 	}
 
-	note, err := store.CreateShoppingNote(c.Request().Context(), h.DB, h.AmountCipher, user.ID, jenis, kategori, req.Jumlah, tanggal)
+	note, err := store.CreateShoppingNote(c.Request().Context(), h.DB, h.AmountCipher, user.ID, jenis, kategori, req.Jumlah, tanggal, strings.TrimSpace(req.NamaBarang), req.JumlahBarang, strings.TrimSpace(req.Catatan))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Gagal menyimpan transaksi: "+err.Error())
 	}
@@ -72,12 +84,53 @@ func (h NotesHandler) List(c *echo.Context) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, "User tidak ditemukan")
 	}
 
-	items, err := store.ListShoppingNotes(c.Request().Context(), h.DB, h.AmountCipher, user.ID)
+	startDate := strings.TrimSpace(c.QueryParam("start_date"))
+	endDate := strings.TrimSpace(c.QueryParam("end_date"))
+
+	page := 1
+	if p, err := strconv.Atoi(c.QueryParam("page")); err == nil && p > 0 {
+		page = p
+	}
+
+	limit := 20
+	if l, err := strconv.Atoi(c.QueryParam("limit")); err == nil && l > 0 && l <= 100 {
+		limit = l
+	}
+
+	result, err := store.ListShoppingNotes(c.Request().Context(), h.DB, h.AmountCipher, user.ID, store.ListNotesParams{
+		StartDate: startDate,
+		EndDate:   endDate,
+		Limit:     limit,
+		Offset:    (page - 1) * limit,
+	})
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Gagal mengambil data: "+err.Error())
 	}
 
-	return c.JSON(http.StatusOK, items)
+	return c.JSON(http.StatusOK, listNotesResponse{
+		Data:    result.Items,
+		Total:   result.Total,
+		Page:    page,
+		Limit:   limit,
+		HasNext: (page-1)*limit+len(result.Items) < result.Total,
+	})
+}
+
+func (h NotesHandler) Summary(c *echo.Context) error {
+	user, ok := middleware.UserFromContext(c)
+	if !ok {
+		return echo.NewHTTPError(http.StatusUnauthorized, "User tidak ditemukan")
+	}
+
+	startDate := strings.TrimSpace(c.QueryParam("start_date"))
+	endDate := strings.TrimSpace(c.QueryParam("end_date"))
+
+	summary, err := store.SummarizeShoppingNotes(c.Request().Context(), h.DB, h.AmountCipher, user.ID, startDate, endDate)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "Gagal mengambil data: "+err.Error())
+	}
+
+	return c.JSON(http.StatusOK, summary)
 }
 
 func (h NotesHandler) Get(c *echo.Context) error {
@@ -140,7 +193,7 @@ func (h NotesHandler) Update(c *echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Jumlah harus lebih dari 0")
 	}
 
-	note, err := store.UpdateShoppingNote(c.Request().Context(), h.DB, h.AmountCipher, user.ID, id, jenis, kategori, req.Jumlah, tanggal)
+	note, err := store.UpdateShoppingNote(c.Request().Context(), h.DB, h.AmountCipher, user.ID, id, jenis, kategori, req.Jumlah, tanggal, strings.TrimSpace(req.NamaBarang), req.JumlahBarang, strings.TrimSpace(req.Catatan))
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return echo.NewHTTPError(http.StatusNotFound, "Data tidak ditemukan")

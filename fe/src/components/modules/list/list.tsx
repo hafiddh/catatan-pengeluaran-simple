@@ -1,32 +1,35 @@
 import { AmountInput } from "@/components/ui/amount-input";
 import { AppleDatePicker } from "@/components/ui/apple-date-picker";
 import {
-    ExpenseTypePills,
-    getExpenseTypeIcon,
+  ExpenseTypePills,
+  getExpenseTypeIcon,
 } from "@/components/ui/expense-type-pills";
 import { hasStoredAuth } from "@/lib/auth-session";
 import showToast from "@/lib/simpleToast";
 import { listExpenseTypes, type ExpenseType } from "@/service/expense-types";
 import {
-    deleteShoppingNote,
-    listShoppingNotes,
-    updateShoppingNote,
-    type ShoppingNote,
+  deleteShoppingNote,
+  listShoppingNotes,
+  updateShoppingNote,
+  type ShoppingNote,
 } from "@/service/notes";
 import {
-    CalendarRange,
-    ChevronDown,
-    LoaderCircle,
-    Pencil,
-    RefreshCcw,
-    Save,
-    Tag,
-    Trash2,
-    Wallet,
+  CalendarRange,
+  ChevronDown,
+  FileText,
+  LoaderCircle,
+  Package,
+  Pencil,
+  RefreshCcw,
+  Save,
+  Tag,
+  Trash2,
+  Wallet,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { QtyPicker } from "@/components/ui/qty-picker";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 20;
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("id-ID", {
@@ -56,33 +59,47 @@ function getFirstDayOfMonth(): string {
   return `${getTodayLocalISODate().slice(0, 8)}01`;
 }
 
-type SummaryItem = {
-  categoryId: string;
-  categoryLabel: string;
-  total: number;
-  count: number;
-};
-
 export function ListNotesPage() {
   const [notes, setNotes] = useState<ShoppingNote[]>([]);
   const [expenseTypes, setExpenseTypes] = useState<ExpenseType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState("");
+  const [hasNext, setHasNext] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const [startDate, setStartDate] = useState<string>(() =>
     getFirstDayOfMonth(),
   );
   const [endDate, setEndDate] = useState<string>(() => getTodayLocalISODate());
-  const [currentPage, setCurrentPage] = useState(1);
   const [editingNote, setEditingNote] = useState<ShoppingNote | null>(null);
   const [editDate, setEditDate] = useState<string>("");
   const [editAmount, setEditAmount] = useState<string>("");
   const [editExpenseType, setEditExpenseType] = useState<string>("");
+  const [editNamaBarang, setEditNamaBarang] = useState<string>("");
+  const [editJumlahBarang, setEditJumlahBarang] = useState<number>(0);
+  const [editCatatan, setEditCatatan] = useState<string>("");
   const [isSubmittingEdit, setIsSubmittingEdit] = useState(false);
   const [deletingId, setDeletingId] = useState<string>("");
   const [pendingDeleteNote, setPendingDeleteNote] =
     useState<ShoppingNote | null>(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const sentinelRef = useCallback((node: HTMLDivElement | null) => {
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+      observerRef.current = null;
+    }
+    if (!node) return;
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) loadMoreRef.current();
+      },
+      { rootMargin: "300px" },
+    );
+    observerRef.current.observe(node);
+  }, []);
 
   const token = useMemo(() => {
     try {
@@ -98,111 +115,94 @@ export function ListNotesPage() {
     return new Map(expenseTypes.map((item) => [item.id, item]));
   }, [expenseTypes]);
 
-  const fetchData = async (withLoader: boolean) => {
-    if (!token && !canRefreshSession) {
-      setIsLoading(false);
-      setError("Anda belum login");
-      try {
-        window.location.href = "/";
-      } catch {
-        // ignore
-      }
-      return;
-    }
-
-    if (withLoader) {
-      setIsLoading(true);
-    } else {
-      setIsRefreshing(true);
-    }
-
-    setError("");
+  const fetchExpenseTypes = useCallback(async () => {
     try {
-      const [loadedNotes, loadedExpenseTypes] = await Promise.all([
-        listShoppingNotes(token),
-        listExpenseTypes(token),
-      ]);
-      setNotes(loadedNotes);
-      setExpenseTypes(loadedExpenseTypes);
-    } catch (e: unknown) {
-      const message =
-        e instanceof Error ? e.message : "Gagal mengambil data catatan";
-      setError(message);
-      showToast(message, { type: "error" });
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
+      const loaded = await listExpenseTypes(token);
+      setExpenseTypes(loaded);
+    } catch {
+      // non-critical, edit modal will just show empty
+    }
+  }, [token]);
+
+  const fetchNotes = useCallback(
+    async (page: number, append: boolean) => {
+      if (!token && !canRefreshSession) {
+        setIsLoading(false);
+        setError("Anda belum login");
+        try {
+          window.location.href = "/";
+        } catch {
+          // ignore
+        }
+        return;
+      }
+
+      if (append) {
+        setIsLoadingMore(true);
+      } else {
+        setIsLoading(true);
+        setError("");
+      }
+
+      try {
+        const result = await listShoppingNotes(token, {
+          startDate,
+          endDate,
+          page,
+          limit: PAGE_SIZE,
+        });
+
+        if (append) {
+          setNotes((prev) => [...prev, ...result.data]);
+        } else {
+          setNotes(result.data);
+        }
+        setHasNext(result.has_next);
+        setCurrentPage(page);
+      } catch (e: unknown) {
+        const message =
+          e instanceof Error ? e.message : "Gagal mengambil data catatan";
+        if (!append) setError(message);
+        showToast(message, { type: "error" });
+      } finally {
+        setIsLoading(false);
+        setIsLoadingMore(false);
+        setIsRefreshing(false);
+      }
+    },
+    [token, startDate, endDate, canRefreshSession],
+  );
+
+  // Initial load and filter changes
+  useEffect(() => {
+    setNotes([]);
+    setCurrentPage(1);
+    setHasNext(false);
+    fetchNotes(1, false);
+  }, [startDate, endDate, token, canRefreshSession]);
+
+  // Load expense types once
+  useEffect(() => {
+    fetchExpenseTypes();
+  }, [fetchExpenseTypes]);
+
+  // Infinite scroll sentinel
+  const loadMoreRef = useRef((): void => {});
+  loadMoreRef.current = () => {
+    if (hasNext && !isLoadingMore && !isLoading) {
+      fetchNotes(currentPage + 1, true);
     }
   };
 
-  useEffect(() => {
-    fetchData(true);
-  }, [canRefreshSession, token]);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [startDate, endDate]);
-
-  const filteredNotes = useMemo(() => {
-    const from = startDate || "0000-01-01";
-    const to = endDate || "9999-12-31";
-
-    return notes.filter((note) => {
-      if (startDate && note.tanggal < from) return false;
-      if (endDate && note.tanggal > to) return false;
-      return true;
-    });
-  }, [endDate, notes, startDate]);
-
-  const totalPages = Math.max(1, Math.ceil(filteredNotes.length / PAGE_SIZE));
-
-  useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(totalPages);
-    }
-  }, [currentPage, totalPages]);
-
-  const paginatedNotes = useMemo(() => {
-    const startIndex = (currentPage - 1) * PAGE_SIZE;
-    return filteredNotes.slice(startIndex, startIndex + PAGE_SIZE);
-  }, [currentPage, filteredNotes]);
-
-  const summary = useMemo(() => {
-    const grouped = new Map<string, SummaryItem>();
-
-    for (const note of filteredNotes) {
-      const current = grouped.get(note.kategori_id);
-      const label =
-        expenseTypeMap.get(note.kategori_id)?.label || "Tanpa kategori";
-
-      if (!current) {
-        grouped.set(note.kategori_id, {
-          categoryId: note.kategori_id,
-          categoryLabel: label,
-          total: note.jumlah,
-          count: 1,
-        });
-        continue;
-      }
-
-      current.total += note.jumlah;
-      current.count += 1;
-    }
-
-    return Array.from(grouped.values()).sort(
-      (left, right) => right.total - left.total,
-    );
-  }, [expenseTypeMap, filteredNotes]);
-
-  const summaryTotalAmount = useMemo(() => {
-    return filteredNotes.reduce((total, note) => total + note.jumlah, 0);
-  }, [filteredNotes]);
 
   const openEditModal = (note: ShoppingNote) => {
     setEditingNote(note);
     setEditDate(note.tanggal);
     setEditAmount(String(note.jumlah));
     setEditExpenseType(note.kategori_id);
+    setEditNamaBarang(note.nama_barang ?? "");
+    setEditJumlahBarang(note.jumlah_barang ?? 0);
+    setEditCatatan(note.catatan ?? "");
   };
 
   const closeEditModal = (force = false) => {
@@ -211,6 +211,9 @@ export function ListNotesPage() {
     setEditDate("");
     setEditAmount("");
     setEditExpenseType("");
+    setEditNamaBarang("");
+    setEditJumlahBarang(0);
+    setEditCatatan("");
   };
 
   const handleUpdate = async () => {
@@ -237,6 +240,9 @@ export function ListNotesPage() {
         jumlah: parsedAmount,
         jenis_transaksi: editingNote.jenis_transaksi || "pengeluaran",
         kategori_id: editExpenseType,
+        nama_barang: editNamaBarang || undefined,
+        jumlah_barang: editJumlahBarang > 0 ? editJumlahBarang : undefined,
+        catatan: editCatatan || undefined,
       });
 
       setNotes((current) =>
@@ -256,7 +262,6 @@ export function ListNotesPage() {
 
   const handleDelete = (note: ShoppingNote) => {
     if (deletingId) return;
-
     setPendingDeleteNote(note);
   };
 
@@ -288,10 +293,6 @@ export function ListNotesPage() {
     }
   };
 
-  const firstItemIndex =
-    filteredNotes.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
-  const lastItemIndex = Math.min(currentPage * PAGE_SIZE, filteredNotes.length);
-
   return (
     <main className="min-h-screen pt-6 pb-12">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
@@ -301,7 +302,7 @@ export function ListNotesPage() {
             onClick={() => setIsFilterOpen((current) => !current)}
             className="flex w-full cursor-pointer items-center justify-between gap-3 text-left"
             aria-expanded={isFilterOpen}
-            aria-controls="laporan-filter-panel"
+            aria-controls="list-filter-panel"
           >
             <div className="flex items-center gap-2">
               <CalendarRange className="h-4 w-4 text-cyan-600 dark:text-cyan-300" />
@@ -312,10 +313,7 @@ export function ListNotesPage() {
               </div>
             </div>
 
-            <span className="inline-flex items-center gap-2">
-              <span className="hidden text-xs font-medium text-gray-500 dark:text-slate-300 sm:inline">
-                {isFilterOpen ? "Tutup" : "Buka"}
-              </span>
+            <span className="inline-flex items-center gap-2"> 
               <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl border border-white/45 bg-white/35 text-slate-700 transition-all duration-300 ease-out dark:border-slate-700/70 dark:bg-slate-900/35 dark:text-slate-200">
                 <ChevronDown
                   className={
@@ -328,7 +326,7 @@ export function ListNotesPage() {
           </button>
 
           <div
-            id="laporan-filter-panel"
+            id="list-filter-panel"
             className={
               "grid overflow-hidden transition-all duration-300 ease-out " +
               (isFilterOpen
@@ -405,14 +403,14 @@ export function ListNotesPage() {
             <div className="px-6 py-10 text-center text-sm font-medium text-red-600">
               {error}
             </div>
-          ) : filteredNotes.length === 0 ? (
+          ) : notes.length === 0 ? (
             <div className="px-6 py-10 text-center text-sm text-gray-500 dark:text-slate-300">
               Belum ada data pada rentang tanggal yang dipilih.
             </div>
           ) : (
             <>
               <div className="divide-y divide-gray-100 dark:divide-slate-800 md:hidden">
-                {paginatedNotes.map((note) => {
+                {notes.map((note) => {
                   const category = expenseTypeMap.get(note.kategori_id);
 
                   return (
@@ -422,6 +420,12 @@ export function ListNotesPage() {
                           <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">
                             {formatDate(note.tanggal)}
                           </p>
+                          {note.nama_barang && (
+                            <p className="mt-0.5 text-xs text-gray-500 dark:text-slate-400">
+                              {note.jumlah_barang ? `${note.jumlah_barang}x ` : ""}
+                              {note.nama_barang}
+                            </p>
+                          )}
                         </div>
 
                         <div className="inline-flex shrink-0 items-center gap-2 rounded-full bg-cyan-50 px-3.5 py-1.5 text-sm font-semibold text-cyan-700 dark:bg-cyan-950/40 dark:text-cyan-200">
@@ -432,6 +436,12 @@ export function ListNotesPage() {
                           <span>{category?.label || "Tanpa kategori"}</span>
                         </div>
                       </div>
+
+                      {note.catatan && (
+                        <p className="mt-1.5 text-xs italic text-gray-400 dark:text-slate-500">
+                          {note.catatan}
+                        </p>
+                      )}
 
                       <div className="mt-3 flex items-center justify-between gap-3">
                         <p className="text-xl font-bold tracking-[0.08em] tabular-nums text-gray-900 dark:text-slate-100">
@@ -475,23 +485,16 @@ export function ListNotesPage() {
                   <thead>
                     <tr className="bg-gray-50 text-left text-gray-600 dark:bg-slate-800/60 dark:text-slate-200">
                       <th className="px-5 py-4 font-semibold sm:px-6">No</th>
-                      <th className="px-5 py-4 font-semibold sm:px-6">
-                        Tanggal
-                      </th>
-                      <th className="px-5 py-4 font-semibold sm:px-6">
-                        Kategori
-                      </th>
-                      <th className="px-5 py-4 font-semibold sm:px-6">
-                        Jumlah
-                      </th>
+                      <th className="px-5 py-4 font-semibold sm:px-6">Tanggal</th>
+                      <th className="px-5 py-4 font-semibold sm:px-6">Kategori</th>
+                      <th className="px-5 py-4 font-semibold sm:px-6">Detail</th>
+                      <th className="px-5 py-4 font-semibold sm:px-6">Jumlah</th>
                       <th className="px-5 py-4 font-semibold sm:px-6">Aksi</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {paginatedNotes.map((note, index) => {
+                    {notes.map((note, index) => {
                       const category = expenseTypeMap.get(note.kategori_id);
-                      const rowNumber =
-                        (currentPage - 1) * PAGE_SIZE + index + 1;
 
                       return (
                         <tr
@@ -499,7 +502,7 @@ export function ListNotesPage() {
                           className="border-t border-gray-100 dark:border-slate-800"
                         >
                           <td className="px-5 py-4 align-top text-gray-500 dark:text-slate-300 sm:px-6">
-                            {rowNumber}
+                            {index + 1}
                           </td>
                           <td className="px-5 py-4 align-top text-gray-900 dark:text-slate-100 sm:px-6">
                             {formatDate(note.tanggal)}
@@ -512,6 +515,27 @@ export function ListNotesPage() {
                               )}
                               {category?.label || "Tanpa kategori"}
                             </div>
+                          </td>
+                          <td className="px-5 py-4 align-top sm:px-6">
+                            {note.nama_barang ? (
+                              <div>
+                                <p className="text-sm text-gray-900 dark:text-slate-100">
+                                  {note.jumlah_barang ? `${note.jumlah_barang}x ` : ""}
+                                  {note.nama_barang}
+                                </p>
+                                {note.catatan && (
+                                  <p className="mt-0.5 text-xs italic text-gray-400 dark:text-slate-500">
+                                    {note.catatan}
+                                  </p>
+                                )}
+                              </div>
+                            ) : note.catatan ? (
+                              <p className="text-xs italic text-gray-400 dark:text-slate-500">
+                                {note.catatan}
+                              </p>
+                            ) : (
+                              <span className="text-gray-300 dark:text-slate-600">—</span>
+                            )}
                           </td>
                           <td className="px-5 py-4 align-top font-semibold tracking-[0.08em] tabular-nums text-gray-900 dark:text-slate-100 sm:px-6">
                             {formatCurrency(note.jumlah)}
@@ -551,51 +575,20 @@ export function ListNotesPage() {
                 </table>
               </div>
 
-              <div className="flex flex-col gap-4 border-t border-white/40 px-5 py-4 dark:border-slate-700/70 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-                <p className="text-sm text-gray-500 dark:text-slate-300">
-                  Menampilkan{" "}
-                  <strong className="text-gray-900 dark:text-slate-100">
-                    {firstItemIndex}
-                  </strong>{" "}
-                  -{" "}
-                  <strong className="text-gray-900 dark:text-slate-100">
-                    {lastItemIndex}
-                  </strong>{" "}
-                  dari{" "}
-                  <strong className="text-gray-900 dark:text-slate-100">
-                    {filteredNotes.length}
-                  </strong>{" "}
-                  data
-                </p>
+              <div ref={sentinelRef} className="h-1" />
 
-                <div className="flex items-center gap-2 self-end sm:self-auto">
-                  <button
-                    type="button"
-                    disabled={currentPage === 1}
-                    onClick={() =>
-                      setCurrentPage((page) => Math.max(1, page - 1))
-                    }
-                    className="rounded-2xl border border-white/45 bg-white/35 px-3 py-2 text-sm font-semibold text-slate-900 shadow-[0_10px_24px_rgba(15,23,42,0.08)] backdrop-blur-sm transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-white/50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700/70 dark:bg-slate-900/35 dark:text-slate-100 dark:hover:bg-slate-800/45"
-                  >
-                    Sebelumnya
-                  </button>
-
-                  <span className="min-w-20 text-center text-sm font-semibold text-gray-700 dark:text-slate-200">
-                    {currentPage} / {totalPages}
-                  </span>
-
-                  <button
-                    type="button"
-                    disabled={currentPage === totalPages}
-                    onClick={() =>
-                      setCurrentPage((page) => Math.min(totalPages, page + 1))
-                    }
-                    className="rounded-2xl border border-white/45 bg-white/35 px-3 py-2 text-sm font-semibold text-slate-900 shadow-[0_10px_24px_rgba(15,23,42,0.08)] backdrop-blur-sm transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-white/50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700/70 dark:bg-slate-900/35 dark:text-slate-100 dark:hover:bg-slate-800/45"
-                  >
-                    Berikutnya
-                  </button>
+              {isLoadingMore && (
+                <div className="flex items-center justify-center gap-2 py-5 text-sm text-gray-500 dark:text-slate-300">
+                  <LoaderCircle className="h-4 w-4 animate-spin" />
+                  Memuat lebih...
                 </div>
-              </div>
+              )}
+
+              {!hasNext && notes.length > 0 && (
+                <div className="border-t border-white/40 px-5 py-4 text-center text-sm text-gray-500 dark:border-slate-700/70 dark:text-slate-300 sm:px-6">
+                  {notes.length} data ditampilkan
+                </div>
+              )}
             </>
           )}
         </section>
@@ -606,20 +599,6 @@ export function ListNotesPage() {
           <div className="absolute inset-0" onClick={() => closeEditModal()} />
 
           <section className="relative z-10 max-h-[90vh] w-full max-w-2xl overflow-auto rounded-3xl border border-white/45 bg-white/35 p-3 shadow-[0_24px_60px_rgba(15,23,42,0.22)] backdrop-blur-md dark:border-slate-700/70 dark:bg-slate-900/40 sm:p-6">
-            {/* <div className="flex items-start justify-between gap-4">
-              <div> 
-              </div>
-
-              <button
-                type="button"
-                onClick={() => closeEditModal()}
-                disabled={isSubmittingEdit}
-                className="inline-flex h-6 w-6 items-center justify-center rounded-lg border border-gray-300 text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div> */}
-
             <div className="grid grid-cols-1 gap-4">
               <label className="space-y-3">
                 <div className="flex items-center gap-2">
@@ -642,6 +621,53 @@ export function ListNotesPage() {
                   value={editAmount}
                   onChange={setEditAmount}
                   min={0}
+                />
+              </label>
+
+              <div className="grid grid-cols-5 gap-3">
+                <label className="col-span-4 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Package className="h-4 w-4 text-gray-500 dark:text-slate-300" />
+                    <span className="text-sm font-medium text-gray-700 dark:text-slate-200">
+                      Nama barang
+                    </span>
+                  </div>
+                  <input
+                    type="text"
+                    value={editNamaBarang}
+                    onChange={(e) => setEditNamaBarang(e.target.value)}
+                    placeholder="opsional"
+                    disabled={isSubmittingEdit}
+                    className="w-full rounded-2xl border border-white/45 bg-white/35 px-4 py-3 text-sm text-slate-900 outline-none shadow-[0_14px_36px_rgba(15,23,42,0.08)] backdrop-blur-sm transition-all duration-300 ease-out focus:ring-2 focus:ring-slate-300/60 disabled:opacity-60 dark:border-slate-700/70 dark:bg-slate-900/35 dark:text-slate-100 dark:focus:ring-slate-500/50"
+                  />
+                </label>
+
+                <div className="col-span-1 space-y-2">
+                  <p className="text-sm font-medium text-gray-700 dark:text-slate-200">
+                    Qty
+                  </p>
+                  <QtyPicker
+                    value={editJumlahBarang}
+                    onChange={setEditJumlahBarang}
+                    disabled={isSubmittingEdit}
+                  />
+                </div>
+              </div>
+
+              <label className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-gray-500 dark:text-slate-300" />
+                  <span className="text-sm font-medium text-gray-700 dark:text-slate-200">
+                    Catatan
+                  </span>
+                </div>
+                <textarea
+                  value={editCatatan}
+                  onChange={(e) => setEditCatatan(e.target.value)}
+                  placeholder="opsional"
+                  rows={2}
+                  disabled={isSubmittingEdit}
+                  className="w-full resize-none rounded-2xl border border-white/45 bg-white/35 px-4 py-3 text-sm text-slate-900 outline-none shadow-[0_14px_36px_rgba(15,23,42,0.08)] backdrop-blur-sm transition-all duration-300 ease-out focus:ring-2 focus:ring-slate-300/60 disabled:opacity-60 dark:border-slate-700/70 dark:bg-slate-900/35 dark:text-slate-100 dark:focus:ring-slate-500/50"
                 />
               </label>
 

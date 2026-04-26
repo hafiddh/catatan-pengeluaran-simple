@@ -1,8 +1,7 @@
 import { getExpenseTypeIcon } from "@/components/ui/expense-type-pills";
 import { hasStoredAuth } from "@/lib/auth-session";
 import showToast from "@/lib/simpleToast";
-import { listExpenseTypes, type ExpenseType } from "@/service/expense-types";
-import { listShoppingNotes, type ShoppingNote } from "@/service/notes";
+import { getShoppingNotesSummary, type NotesSummary } from "@/service/notes";
 import {
   CalendarRange,
   ChevronDown,
@@ -30,16 +29,8 @@ function getFirstDayOfMonth(): string {
   return `${getTodayLocalISODate().slice(0, 8)}01`;
 }
 
-type SummaryItem = {
-  categoryId: string;
-  categoryLabel: string;
-  total: number;
-  count: number;
-};
-
 export function LaporanPage() {
-  const [notes, setNotes] = useState<ShoppingNote[]>([]);
-  const [expenseTypes, setExpenseTypes] = useState<ExpenseType[]>([]);
+  const [summary, setSummary] = useState<NotesSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -58,10 +49,6 @@ export function LaporanPage() {
   }, []);
 
   const canRefreshSession = useMemo(() => hasStoredAuth(), []);
-
-  const expenseTypeMap = useMemo(() => {
-    return new Map(expenseTypes.map((item) => [item.id, item]));
-  }, [expenseTypes]);
 
   const fetchData = async (withLoader: boolean) => {
     if (!token && !canRefreshSession) {
@@ -83,12 +70,8 @@ export function LaporanPage() {
 
     setError("");
     try {
-      const [loadedNotes, loadedExpenseTypes] = await Promise.all([
-        listShoppingNotes(token),
-        listExpenseTypes(token),
-      ]);
-      setNotes(loadedNotes);
-      setExpenseTypes(loadedExpenseTypes);
+      const data = await getShoppingNotesSummary(token, { startDate, endDate });
+      setSummary(data);
     } catch (e: unknown) {
       const message =
         e instanceof Error ? e.message : "Gagal mengambil data laporan";
@@ -102,49 +85,7 @@ export function LaporanPage() {
 
   useEffect(() => {
     fetchData(true);
-  }, [canRefreshSession, token]);
-
-  const filteredNotes = useMemo(() => {
-    const from = startDate || "0000-01-01";
-    const to = endDate || "9999-12-31";
-
-    return notes.filter((note) => {
-      if (startDate && note.tanggal < from) return false;
-      if (endDate && note.tanggal > to) return false;
-      return true;
-    });
-  }, [endDate, notes, startDate]);
-
-  const summary = useMemo(() => {
-    const grouped = new Map<string, SummaryItem>();
-
-    for (const note of filteredNotes) {
-      const current = grouped.get(note.kategori_id);
-      const label =
-        expenseTypeMap.get(note.kategori_id)?.label || "Tanpa kategori";
-
-      if (!current) {
-        grouped.set(note.kategori_id, {
-          categoryId: note.kategori_id,
-          categoryLabel: label,
-          total: note.jumlah,
-          count: 1,
-        });
-        continue;
-      }
-
-      current.total += note.jumlah;
-      current.count += 1;
-    }
-
-    return Array.from(grouped.values()).sort(
-      (left, right) => right.total - left.total,
-    );
-  }, [expenseTypeMap, filteredNotes]);
-
-  const summaryTotalAmount = useMemo(() => {
-    return filteredNotes.reduce((total, note) => total + note.jumlah, 0);
-  }, [filteredNotes]);
+  }, [startDate, endDate, canRefreshSession, token]);
 
   return (
     <main className="pt-6 pb-12">
@@ -166,10 +107,7 @@ export function LaporanPage() {
               </div>
             </div>
 
-            <span className="inline-flex items-center gap-2">
-              <span className="hidden text-xs font-medium text-gray-500 dark:text-slate-300 sm:inline">
-                {isFilterOpen ? "Tutup" : "Buka"}
-              </span>
+            <span className="inline-flex items-center gap-2"> 
               <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl border border-white/45 bg-white/35 text-slate-700 transition-all duration-300 ease-out dark:border-slate-700/70 dark:bg-slate-900/35 dark:text-slate-200">
                 <ChevronDown
                   className={
@@ -259,80 +197,74 @@ export function LaporanPage() {
             </div>
           ) : (
             <>
-              <div className="grid gap-4 md:grid-cols-3 w-full">
-                <div className="flex w-full gap-3">
-                  <div className="w-full  rounded-2xl border border-white/45 bg-white/35 px-4 py-3 shadow-[0_10px_24px_rgba(15,23,42,0.08)] backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/35">
-                    <p className="text-sm text-gray-500 dark:text-slate-300">
-                      Total data
-                    </p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-slate-100">
-                      {filteredNotes.length}
-                    </p>
-                  </div>
-                  <div className="w-full rounded-2xl border border-white/45 bg-white/35 px-4 py-3 shadow-[0_10px_24px_rgba(15,23,42,0.08)] backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/35">
-                    <p className="text-sm text-gray-500 dark:text-slate-300">
-                      Jumlah kategori
-                    </p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-slate-100">
-                      {summary.length}
-                    </p>
-                  </div>
+              <div className="grid grid-cols-2 gap-4 w-full">
+                <div className="rounded-2xl border border-white/45 bg-white/35 px-4 py-3 shadow-[0_10px_24px_rgba(15,23,42,0.08)] backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/35 text-center">
+                  <p className="text-sm text-gray-500 dark:text-slate-300">
+                    Total data
+                  </p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-slate-100">
+                    {summary?.total_count ?? 0}
+                  </p>
                 </div>
-                <div className="rounded-2xl border border-white/45 bg-white/35 px-4 py-3 shadow-[0_10px_24px_rgba(15,23,42,0.08)] backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/35">
+                <div className="rounded-2xl border border-white/45 bg-white/35 px-4 py-3 shadow-[0_10px_24px_rgba(15,23,42,0.08)] backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/35 text-center">
+                  <p className="text-sm text-gray-500 dark:text-slate-300">
+                    Jumlah kategori
+                  </p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-slate-100">
+                    {summary?.categories.length ?? 0}
+                  </p>
+                </div>
+                <div className="col-span-2 rounded-2xl border border-white/45 bg-white/35 px-4 py-3 shadow-[0_10px_24px_rgba(15,23,42,0.08)] backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/35 text-center">
                   <p className="text-sm text-gray-500 dark:text-slate-300">
                     Total nominal
                   </p>
-                  <p className="text-2xl text-center font-bold text-gray-900 dark:text-slate-100 *:93">
-                    {formatCurrency(summaryTotalAmount)}
+                  <p className="text-2xl font-bold text-gray-900 dark:text-slate-100">
+                    {formatCurrency(summary?.total_amount ?? 0)}
                   </p>
                 </div>
               </div>
 
               <div className="mt-6 overflow-hidden rounded-2xl border border-white/45 bg-white/20 dark:border-slate-700/70 dark:bg-slate-900/20">
-                {summary.length === 0 ? (
+                {!summary || summary.categories.length === 0 ? (
                   <div className="px-5 py-8 text-center text-sm text-gray-500 dark:text-slate-300">
                     Belum ada summary untuk filter yang dipilih.
                   </div>
                 ) : (
                   <>
                     <div className="divide-y divide-gray-100 dark:divide-slate-800 md:hidden">
-                      {summary.map((item) => {
-                        const expenseType = expenseTypeMap.get(item.categoryId);
-
-                        return (
-                          <div key={item.categoryId} className="px-4 py-4">
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="inline-flex min-w-0 items-center gap-2 rounded-full bg-cyan-50 px-3.5 py-1.5 text-sm font-semibold text-cyan-700 dark:bg-cyan-950/40 dark:text-cyan-200">
-                                {getExpenseTypeIcon(
-                                  expenseType?.icon,
-                                  item.categoryLabel,
-                                )}
-                                <span className="truncate">
-                                  {item.categoryLabel}
-                                </span>
-                              </div>
-
-                              <div className="rounded-xl bg-gray-50 px-3 py-1.5 text-right dark:bg-slate-800/70">
-                                <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-gray-500 dark:text-slate-400">
-                                  Data
-                                </p>
-                                <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">
-                                  {item.count}
-                                </p>
-                              </div>
+                      {summary.categories.map((item) => (
+                        <div key={item.kategori_id} className="px-4 py-4">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="inline-flex min-w-0 items-center gap-2 rounded-full bg-cyan-50 px-3.5 py-1.5 text-sm font-semibold text-cyan-700 dark:bg-cyan-950/40 dark:text-cyan-200">
+                              {getExpenseTypeIcon(
+                                item.icon,
+                                item.kategori_label,
+                              )}
+                              <span className="truncate">
+                                {item.kategori_label || "Tanpa kategori"}
+                              </span>
                             </div>
 
-                            <div className="mt-3 flex items-end justify-between gap-3">
+                            <div className="rounded-xl bg-gray-50 px-3 py-1.5 text-right dark:bg-slate-800/70">
                               <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-gray-500 dark:text-slate-400">
-                                Total nominal
+                                Data
                               </p>
-                              <p className="text-base font-semibold tracking-[0.08em] tabular-nums text-gray-900 dark:text-slate-100">
-                                {formatCurrency(item.total)}
+                              <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">
+                                {item.count}
                               </p>
                             </div>
                           </div>
-                        );
-                      })}
+
+                          <div className="mt-3 flex items-end justify-between gap-3">
+                            <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-gray-500 dark:text-slate-400">
+                              Total nominal
+                            </p>
+                            <p className="text-base font-semibold tracking-[0.08em] tabular-nums text-gray-900 dark:text-slate-100">
+                              {formatCurrency(item.total)}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
                     </div>
 
                     <div className="hidden overflow-x-auto md:block">
@@ -351,18 +283,18 @@ export function LaporanPage() {
                           </tr>
                         </thead>
                         <tbody>
-                          {summary.map((item) => (
+                          {summary.categories.map((item) => (
                             <tr
-                              key={item.categoryId}
+                              key={item.kategori_id}
                               className="border-t border-gray-100 dark:border-slate-800"
                             >
                               <td className="px-5 py-4 font-medium text-gray-900 dark:text-slate-100">
                                 <div className="inline-flex items-center gap-2 rounded-full bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-700 dark:bg-cyan-950/40 dark:text-cyan-200">
                                   {getExpenseTypeIcon(
-                                    expenseTypeMap.get(item.categoryId)?.icon,
-                                    item.categoryLabel,
+                                    item.icon,
+                                    item.kategori_label,
                                   )}
-                                  {item.categoryLabel}
+                                  {item.kategori_label || "Tanpa kategori"}
                                 </div>
                               </td>
                               <td className="px-5 py-4 text-gray-600 dark:text-slate-300">
