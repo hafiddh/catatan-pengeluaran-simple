@@ -24,7 +24,7 @@ export async function LoginWithGoogle(
     throw new Error("Credential Google tidak ditemukan");
   }
 
-  const res = await fetch(`${API_BASE_URL}/api/auth/google`, {
+  const res = await fetch(`${API_BASE_URL}/auth/google`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

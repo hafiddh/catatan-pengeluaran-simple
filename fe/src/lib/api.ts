@@ -1,10 +1,10 @@
 import {
-    clearAuthSession,
-    getStoredAccessToken,
-    getStoredRefreshToken,
-    resolveAccessToken,
-    storeAuthSession,
-    type AuthSessionPayload,
+  clearAuthSession,
+  getStoredAccessToken,
+  getStoredRefreshToken,
+  resolveAccessToken,
+  storeAuthSession,
+  type AuthSessionPayload,
 } from "@/lib/auth-session";
 
 export const API_BASE_URL = (
@@ -52,7 +52,7 @@ export async function refreshAccessToken(): Promise<string> {
       throw new Error("Sesi login berakhir, silakan login kembali");
     }
 
-    const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
+    const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

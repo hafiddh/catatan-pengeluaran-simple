@@ -59,7 +59,7 @@ export async function createShoppingNote(
   payload: CreateShoppingNoteRequest,
 ): Promise<ShoppingNote> {
   const res = await authorizedFetch(
-    "/api/notes",
+    "/notes",
     {
       method: "POST",
       headers: {
@@ -89,7 +89,7 @@ export async function listShoppingNotes(
 
   const qs = query.toString();
   const res = await authorizedFetch(
-    `/api/notes${qs ? `?${qs}` : ""}`,
+    `/notes${qs ? `?${qs}` : ""}`,
     { method: "GET" },
     token,
   );
@@ -111,7 +111,7 @@ export async function getShoppingNotesSummary(
 
   const qs = query.toString();
   const res = await authorizedFetch(
-    `/api/notes/summary${qs ? `?${qs}` : ""}`,
+    `/notes/summary${qs ? `?${qs}` : ""}`,
     { method: "GET" },
     token,
   );
@@ -129,7 +129,7 @@ export async function getShoppingNoteByID(
 ): Promise<ShoppingNote> {
   if (!id) throw new Error("ID catatan tidak valid");
 
-  const res = await authorizedFetch(`/api/notes/${id}`, { method: "GET" }, token);
+  const res = await authorizedFetch(`/notes/${id}`, { method: "GET" }, token);
 
   if (!res.ok) {
     throw new Error(await getErrorMessage(res, "Gagal mengambil catatan"));
@@ -146,7 +146,7 @@ export async function updateShoppingNote(
   if (!id) throw new Error("ID catatan tidak valid");
 
   const res = await authorizedFetch(
-    `/api/notes/${id}`,
+    `/notes/${id}`,
     {
       method: "PUT",
       headers: {
@@ -170,7 +170,7 @@ export async function deleteShoppingNote(
 ): Promise<void> {
   if (!id) throw new Error("ID catatan tidak valid");
 
-  const res = await authorizedFetch(`/api/notes/${id}`, { method: "DELETE" }, token);
+  const res = await authorizedFetch(`/notes/${id}`, { method: "DELETE" }, token);
 
   if (!res.ok) {
     throw new Error(await getErrorMessage(res, "Gagal menghapus catatan"));

@@ -133,7 +133,7 @@ async function cropAndCompress(
 }
 
 async function callScanReceipt(base64: string): Promise<ScannedItem[]> {
-  const res = await authorizedFetch("/api/scan-receipt", {
+  const res = await authorizedFetch("/scan-receipt", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ image_base64: base64, mime_type: "image/jpeg" }),

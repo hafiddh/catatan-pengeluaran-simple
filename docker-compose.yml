@@ -11,18 +11,10 @@ x-be-env: &a1
   DB_PASSWORD: 
   DB_PARAMS: parseTime=true&charset=utf8mb4&loc=Local 
   GOOGLE_CLIENT_ID: 194218724970-870jicr294njjlmg05e9is2n65sapolj.apps.googleusercontent.com
-  GEMINI_API_KEY: AIzaSyDoon-ULF2na3b-Fdppl3cslQ5SLDZlh4s
-x-face-env: &a3
-  DATABASE_URL: mysql+pymysql://root:@host.docker.internal:3306/face_recognition
-  FACE_API_KEY: F4c3Ap1K3yAng3LSu1C!d3
-  FACE_DATA_DIR: data
-  FACE_TOLERANCE: "0.42"
-  FACE_MIN_PHOTOS: "6"
-  FACE_MAX_PHOTO_MB: "10"
-  FACE_MIN_QUALITY_SCORE: "35"
+  GEMINI_API_KEY: AIzaSyDoon-ULF2na3b-Fdppl3cslQ5SLDZlh4s 
 x-fe-build-env: &a2
   PORT: "4321"
-  #PUBLIC_API_BE_URL: https://rxmvmsat21lukf.joeichiro.my.id
+  # PUBLIC_API_BE_URL: https://rxmvmsat21lukf.joeichiro.my.id
   PUBLIC_API_BE_URL: /api
   PUBLIC_GOOGLE_CLIENT_ID: 194218724970-870jicr294njjlmg05e9is2n65sapolj.apps.googleusercontent.com
 services:
@@ -50,26 +42,13 @@ services:
       - "4321"
     depends_on:
       - be
-    restart: unless-stopped
-  face:
-    container_name: face
-    build:
-      context: ./face-services
-      dockerfile: Dockerfile
-    environment:
-      <<: *a3
-    expose:
-      - "8000"
-    volumes:
-      - ./face-services/data:/app/data
-    restart: unless-stopped
+    restart: unless-stopped 
   nginx:
     container_name: nginx
     image: nginx:1.27-alpine
     depends_on:
       - fe
-      - be
-      - face
+      - be 
     ports:
       - 3060:80
     volumes:

@@ -11,7 +11,7 @@ export type ExpenseType = {
 
 export async function listExpenseTypes(token: string): Promise<ExpenseType[]> {
   const res = await authorizedFetch(
-    "/api/expense-types",
+    "/expense-types",
     { method: "GET" },
     token,
   );
