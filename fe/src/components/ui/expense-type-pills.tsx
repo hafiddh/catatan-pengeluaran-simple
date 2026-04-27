@@ -46,7 +46,7 @@ export function ExpenseTypePills({
   className,
 }: ExpenseTypePillsProps) {
   return (
-    <div className={"flex flex-wrap gap-1.5 " + (className || "")}>
+    <div className={"flex flex-wrap justify-center gap-1.5 " + (className || "")}>
       {items.map((it) => {
         const selected = it.id === value;
         return (

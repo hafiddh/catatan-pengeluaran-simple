@@ -12,6 +12,7 @@ type Config struct {
 	JWTSecret              string
 	NotesEncryptKey        string
 	GoogleClientID         string
+	GeminiAPIKey           string
 	AllowedFrontendOrigins []string
 	DBDriver               string
 	DBDSN                  string
@@ -99,6 +100,7 @@ func Load() (Config, error) {
 		JWTSecret:              jwtSecret,
 		NotesEncryptKey:        notesEncryptKey,
 		GoogleClientID:         strings.TrimSpace(os.Getenv("GOOGLE_CLIENT_ID")),
+		GeminiAPIKey:           strings.TrimSpace(os.Getenv("GEMINI_API_KEY")),
 		AllowedFrontendOrigins: origins,
 		DBDriver:               dbDriver,
 		DBDSN:                  dbDSN,

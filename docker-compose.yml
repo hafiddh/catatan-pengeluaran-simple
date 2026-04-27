@@ -9,7 +9,9 @@ x-be-env: &a1
   DB_NAME: catatan
   DB_USER: root
   DB_PASSWORD: 
-  DB_PARAMS: parseTime=true&charset=utf8mb4&loc=Local
+  DB_PARAMS: parseTime=true&charset=utf8mb4&loc=Local 
+  GOOGLE_CLIENT_ID: 194218724970-870jicr294njjlmg05e9is2n65sapolj.apps.googleusercontent.com
+  GEMINI_API_KEY: AIzaSyDoon-ULF2na3b-Fdppl3cslQ5SLDZlh4s
 x-face-env: &a3
   DATABASE_URL: mysql+pymysql://root:@host.docker.internal:3306/face_recognition
   FACE_API_KEY: F4c3Ap1K3yAng3LSu1C!d3
@@ -22,6 +24,7 @@ x-fe-build-env: &a2
   PORT: "4321"
   #PUBLIC_API_BE_URL: https://rxmvmsat21lukf.joeichiro.my.id
   PUBLIC_API_BE_URL: /api
+  PUBLIC_GOOGLE_CLIENT_ID: 194218724970-870jicr294njjlmg05e9is2n65sapolj.apps.googleusercontent.com
 services:
   be:
     container_name: be

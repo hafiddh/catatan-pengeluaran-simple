@@ -73,5 +73,8 @@ func New(cfg config.Config, db *sql.DB, amountCipher *notecrypto.AmountCipher) *
 	protected.PUT("/expense-types/:id", expenseTypes.Update)
 	protected.DELETE("/expense-types/:id", expenseTypes.Delete)
 
+	receipt := handler.ReceiptHandler{GeminiAPIKey: cfg.GeminiAPIKey}
+	protected.POST("/scan-receipt", receipt.ScanReceipt)
+
 	return e
 }

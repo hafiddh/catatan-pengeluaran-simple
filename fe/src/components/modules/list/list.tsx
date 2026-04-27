@@ -4,6 +4,7 @@ import {
   ExpenseTypePills,
   getExpenseTypeIcon,
 } from "@/components/ui/expense-type-pills";
+import { QtyPicker } from "@/components/ui/qty-picker";
 import { hasStoredAuth } from "@/lib/auth-session";
 import showToast from "@/lib/simpleToast";
 import { listExpenseTypes, type ExpenseType } from "@/service/expense-types";
@@ -26,7 +27,6 @@ import {
   Trash2,
   Wallet,
 } from "lucide-react";
-import { QtyPicker } from "@/components/ui/qty-picker";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const PAGE_SIZE = 20;
@@ -194,7 +194,6 @@ export function ListNotesPage() {
     }
   };
 
-
   const openEditModal = (note: ShoppingNote) => {
     setEditingNote(note);
     setEditDate(note.tanggal);
@@ -313,7 +312,7 @@ export function ListNotesPage() {
               </div>
             </div>
 
-            <span className="inline-flex items-center gap-2"> 
+            <span className="inline-flex items-center gap-2">
               <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl border border-white/45 bg-white/35 text-slate-700 transition-all duration-300 ease-out dark:border-slate-700/70 dark:bg-slate-900/35 dark:text-slate-200">
                 <ChevronDown
                   className={
@@ -414,21 +413,12 @@ export function ListNotesPage() {
                   const category = expenseTypeMap.get(note.kategori_id);
 
                   return (
-                    <div key={note.id} className="px-4 py-4">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">
-                            {formatDate(note.tanggal)}
-                          </p>
-                          {note.nama_barang && (
-                            <p className="mt-0.5 text-xs text-gray-500 dark:text-slate-400">
-                              {note.jumlah_barang ? `${note.jumlah_barang}x ` : ""}
-                              {note.nama_barang}
-                            </p>
-                          )}
-                        </div>
-
-                        <div className="inline-flex shrink-0 items-center gap-2 rounded-full bg-cyan-50 px-3.5 py-1.5 text-sm font-semibold text-cyan-700 dark:bg-cyan-950/40 dark:text-cyan-200">
+                    <div key={note.id} className="px-4 py-3.5"> 
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-xs font-semibold text-gray-500 dark:text-slate-400">
+                          {formatDate(note.tanggal)}
+                        </p>
+                        <div className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-cyan-50 px-2.5 py-1 text-xs font-semibold text-cyan-700 dark:bg-cyan-950/40 dark:text-cyan-200">
                           {getExpenseTypeIcon(
                             category?.icon,
                             category?.label || "Tanpa kategori",
@@ -436,13 +426,36 @@ export function ListNotesPage() {
                           <span>{category?.label || "Tanpa kategori"}</span>
                         </div>
                       </div>
-
-                      {note.catatan && (
-                        <p className="mt-1.5 text-xs italic text-gray-400 dark:text-slate-500">
-                          {note.catatan}
-                        </p>
+ 
+                      {(note.nama_barang || note.jumlah_barang || note.catatan) && (
+                        <div className="mt-2 space-y-1.5 rounded-2xl border border-white/40 bg-white/20 px-3 py-2.5 dark:border-slate-700/50 dark:bg-slate-800/20">
+                          {(note.nama_barang || note.jumlah_barang) && (
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex min-w-0 items-center gap-2">
+                                <Package className="h-3.5 w-3.5 shrink-0 text-gray-400 dark:text-slate-500" />
+                                <span className="truncate text-sm font-medium text-gray-800 dark:text-slate-200">
+                                  {note.nama_barang || "—"}
+                                </span>
+                              </div>
+                              {!!note.jumlah_barang && (
+                                <div className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-white/40 bg-white/30 px-2 py-0.5 text-xs font-semibold text-gray-600 dark:border-slate-600/50 dark:bg-slate-700/40 dark:text-slate-300">
+                                  <Package className="h-3 w-3" />
+                                  {note.jumlah_barang}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          {note.catatan && (
+                            <div className="flex items-start gap-2">
+                              <FileText className="mt-0.5 h-3.5 w-3.5 shrink-0 text-gray-400 dark:text-slate-500" />
+                              <span className="text-xs italic text-gray-400 dark:text-slate-500">
+                                {note.catatan}
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       )}
-
+ 
                       <div className="mt-3 flex items-center justify-between gap-3">
                         <p className="text-xl font-bold tracking-[0.08em] tabular-nums text-gray-900 dark:text-slate-100">
                           {formatCurrency(note.jumlah)}
@@ -485,10 +498,18 @@ export function ListNotesPage() {
                   <thead>
                     <tr className="bg-gray-50 text-left text-gray-600 dark:bg-slate-800/60 dark:text-slate-200">
                       <th className="px-5 py-4 font-semibold sm:px-6">No</th>
-                      <th className="px-5 py-4 font-semibold sm:px-6">Tanggal</th>
-                      <th className="px-5 py-4 font-semibold sm:px-6">Kategori</th>
-                      <th className="px-5 py-4 font-semibold sm:px-6">Detail</th>
-                      <th className="px-5 py-4 font-semibold sm:px-6">Jumlah</th>
+                      <th className="px-5 py-4 font-semibold sm:px-6">
+                        Tanggal
+                      </th>
+                      <th className="px-5 py-4 font-semibold sm:px-6">
+                        Kategori
+                      </th>
+                      <th className="px-5 py-4 font-semibold sm:px-6">
+                        Detail
+                      </th>
+                      <th className="px-5 py-4 font-semibold sm:px-6">
+                        Jumlah
+                      </th>
                       <th className="px-5 py-4 font-semibold sm:px-6">Aksi</th>
                     </tr>
                   </thead>
@@ -520,7 +541,9 @@ export function ListNotesPage() {
                             {note.nama_barang ? (
                               <div>
                                 <p className="text-sm text-gray-900 dark:text-slate-100">
-                                  {note.jumlah_barang ? `${note.jumlah_barang}x ` : ""}
+                                  {note.jumlah_barang
+                                    ? `${note.jumlah_barang}x `
+                                    : ""}
                                   {note.nama_barang}
                                 </p>
                                 {note.catatan && (
@@ -534,7 +557,9 @@ export function ListNotesPage() {
                                 {note.catatan}
                               </p>
                             ) : (
-                              <span className="text-gray-300 dark:text-slate-600">—</span>
+                              <span className="text-gray-300 dark:text-slate-600">
+                                —
+                              </span>
                             )}
                           </td>
                           <td className="px-5 py-4 align-top font-semibold tracking-[0.08em] tabular-nums text-gray-900 dark:text-slate-100 sm:px-6">
