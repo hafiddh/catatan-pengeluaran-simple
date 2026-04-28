@@ -28,6 +28,7 @@ export type ShoppingNote = {
 export type ListNotesParams = {
   startDate?: string;
   endDate?: string;
+  kategoriId?: string;
   page?: number;
   limit?: number;
 };
@@ -84,6 +85,7 @@ export async function listShoppingNotes(
   const query = new URLSearchParams();
   if (params.startDate) query.set("start_date", params.startDate);
   if (params.endDate) query.set("end_date", params.endDate);
+  if (params.kategoriId) query.set("kategori_id", params.kategoriId);
   if (params.page) query.set("page", String(params.page));
   if (params.limit) query.set("limit", String(params.limit));
 

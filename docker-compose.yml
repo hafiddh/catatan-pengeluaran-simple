@@ -1,8 +1,8 @@
 x-be-env: &a1
   PORT: "1323"
-  JWT_SECRET: S1Mpl3App4ng3lSuiC1d3
-  NOTES_ENCRYPT_KEY: ganti-dengan-secret-minimal-16-karakter
-  ALLOWED_FRONTEND_ORIGINS: http://localhost:3060,https://catatan-sihafid.joeichiro.my.id
+  JWT_SECRET: 
+  NOTES_ENCRYPT_KEY: 
+  ALLOWED_FRONTEND_ORIGINS: 
   DB_DRIVER: mysql
   DB_HOST: host.docker.internal
   DB_PORT: "3306"
@@ -10,13 +10,13 @@ x-be-env: &a1
   DB_USER: root
   DB_PASSWORD: 
   DB_PARAMS: parseTime=true&charset=utf8mb4&loc=Local 
-  GOOGLE_CLIENT_ID: 194218724970-870jicr294njjlmg05e9is2n65sapolj.apps.googleusercontent.com
-  GEMINI_API_KEY: AIzaSyDoon-ULF2na3b-Fdppl3cslQ5SLDZlh4s 
+  GOOGLE_CLIENT_ID: 
+  GEMINI_API_KEY: 
 x-fe-build-env: &a2
   PORT: "4321"
   # PUBLIC_API_BE_URL: https://rxmvmsat21lukf.joeichiro.my.id
   PUBLIC_API_BE_URL: /api
-  PUBLIC_GOOGLE_CLIENT_ID: 194218724970-870jicr294njjlmg05e9is2n65sapolj.apps.googleusercontent.com
+  PUBLIC_GOOGLE_CLIENT_ID: 
 services:
   be:
     container_name: be

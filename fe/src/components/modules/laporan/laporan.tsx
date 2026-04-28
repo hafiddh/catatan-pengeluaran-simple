@@ -1,7 +1,8 @@
+import { CategoryNotesModal } from "@/components/ui/category-notes-modal";
 import { getExpenseTypeIcon } from "@/components/ui/expense-type-pills";
 import { hasStoredAuth } from "@/lib/auth-session";
 import showToast from "@/lib/simpleToast";
-import { getShoppingNotesSummary, type NotesSummary } from "@/service/notes";
+import { getShoppingNotesSummary, type NotesSummary, type NotesSummaryItem } from "@/service/notes";
 import {
   CalendarRange,
   ChevronDown,
@@ -39,6 +40,9 @@ export function LaporanPage() {
     getFirstDayOfMonth(),
   );
   const [endDate, setEndDate] = useState<string>(() => getTodayLocalISODate());
+
+  const [selectedCategory, setSelectedCategory] =
+    useState<NotesSummaryItem | null>(null);
 
   const token = useMemo(() => {
     try {
@@ -107,7 +111,7 @@ export function LaporanPage() {
               </div>
             </div>
 
-            <span className="inline-flex items-center gap-2"> 
+            <span className="inline-flex items-center gap-2">
               <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl border border-white/45 bg-white/35 text-slate-700 transition-all duration-300 ease-out dark:border-slate-700/70 dark:bg-slate-900/35 dark:text-slate-200">
                 <ChevronDown
                   className={
@@ -233,7 +237,12 @@ export function LaporanPage() {
                   <>
                     <div className="divide-y divide-gray-100 dark:divide-slate-800 md:hidden">
                       {summary.categories.map((item) => (
-                        <div key={item.kategori_id} className="px-4 py-4">
+                        <button
+                          key={item.kategori_id}
+                          type="button"
+                          onClick={() => setSelectedCategory(item)}
+                          className="w-full cursor-pointer px-4 py-4 text-left transition-colors hover:bg-slate-50/60 dark:hover:bg-slate-800/30 active:bg-slate-100/60"
+                        >
                           <div className="flex items-start justify-between gap-3">
                             <div className="inline-flex min-w-0 items-center gap-2 rounded-full bg-cyan-50 px-3.5 py-1.5 text-sm font-semibold text-cyan-700 dark:bg-cyan-950/40 dark:text-cyan-200">
                               {getExpenseTypeIcon(
@@ -263,7 +272,7 @@ export function LaporanPage() {
                               {formatCurrency(item.total)}
                             </p>
                           </div>
-                        </div>
+                        </button>
                       ))}
                     </div>
 
@@ -286,7 +295,8 @@ export function LaporanPage() {
                           {summary.categories.map((item) => (
                             <tr
                               key={item.kategori_id}
-                              className="border-t border-gray-100 dark:border-slate-800"
+                              onClick={() => setSelectedCategory(item)}
+                              className="cursor-pointer border-t border-gray-100 transition-colors hover:bg-slate-50/60 dark:border-slate-800 dark:hover:bg-slate-800/30"
                             >
                               <td className="px-5 py-4 font-medium text-gray-900 dark:text-slate-100">
                                 <div className="inline-flex items-center gap-2 rounded-full bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-700 dark:bg-cyan-950/40 dark:text-cyan-200">
@@ -315,6 +325,20 @@ export function LaporanPage() {
           )}
         </section>
       </div>
+
+      {selectedCategory && (
+        <CategoryNotesModal
+          isOpen={!!selectedCategory}
+          onClose={() => setSelectedCategory(null)}
+          token={token}
+          kategoriId={selectedCategory.kategori_id}
+          kategoriLabel={selectedCategory.kategori_label}
+          kategoriIcon={selectedCategory.icon}
+          startDate={startDate}
+          endDate={endDate}
+          totalAmount={selectedCategory.total}
+        />
+      )}
     </main>
   );
 }

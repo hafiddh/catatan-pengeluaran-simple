@@ -24,3 +24,26 @@ export async function listExpenseTypes(token: string): Promise<ExpenseType[]> {
 
   return (await res.json()) as ExpenseType[];
 }
+
+export async function createExpenseType(
+  token: string,
+  payload: { label: string; icon: string },
+): Promise<ExpenseType> {
+  const res = await authorizedFetch(
+    "/expense-types",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    },
+    token,
+  );
+
+  if (!res.ok) {
+    throw new Error(
+      await getErrorMessage(res, "Gagal membuat jenis pengeluaran"),
+    );
+  }
+
+  return (await res.json()) as ExpenseType;
+}

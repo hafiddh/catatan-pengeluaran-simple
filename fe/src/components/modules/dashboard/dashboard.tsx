@@ -2,6 +2,7 @@ import { hasStoredAuth } from "@/lib/auth-session";
 import showToast from "@/lib/simpleToast";
 import { listExpenseTypes, type ExpenseType } from "@/service/expense-types";
 import { createShoppingNote } from "@/service/notes";
+import { AddExpenseTypeDialog } from "@components/ui/add-expense-type-dialog";
 import { AmountInput } from "@components/ui/amount-input";
 import { AppleDatePicker } from "@components/ui/apple-date-picker";
 import { ExpenseTypePills } from "@components/ui/expense-type-pills";
@@ -43,6 +44,7 @@ export const Dashboard = () => {
   const [expenseTypesError, setExpenseTypesError] = useState<string>("");
   const [isSaving, setIsSaving] = useState(false);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [isAddTypeOpen, setIsAddTypeOpen] = useState(false);
 
   const token = useMemo(() => {
     try {
@@ -86,6 +88,14 @@ export const Dashboard = () => {
       active = false;
     };
   }, [canRefreshSession, token]);
+
+  const handleExpenseTypeCreated = (newType: ExpenseType) => {
+    setExpenseTypes((prev) =>
+      [...prev, newType].sort((a, b) => a.label.localeCompare(b.label)),
+    );
+    setExpenseType(newType.id);
+    setIsAddTypeOpen(false);
+  };
 
   const handleSaveScannedItem = async (item: WizardSavePayload) => {
     await createShoppingNote(token, {
@@ -148,6 +158,13 @@ export const Dashboard = () => {
         onClose={() => setIsScannerOpen(false)}
         expenseTypes={expenseTypes}
         onSaveItem={handleSaveScannedItem}
+      />
+
+      <AddExpenseTypeDialog
+        isOpen={isAddTypeOpen}
+        onClose={() => setIsAddTypeOpen(false)}
+        token={token}
+        onCreated={handleExpenseTypeCreated}
       />
 
       <main className="pt-5 pb-20">
@@ -234,6 +251,7 @@ export const Dashboard = () => {
                 value={expenseType}
                 onChange={setExpenseType}
                 disabled={isLoadingExpenseTypes}
+                onAdd={() => setIsAddTypeOpen(true)}
               />
 
               {expenseTypesError ? (

@@ -1,14 +1,6 @@
+import { getExpenseIcon } from "@/lib/expense-icons";
 import type { ExpenseType } from "@/service/expense-types";
-import {
-  CigaretteIcon,
-  CookingPot,
-  FileText,
-  Film,
-  Gamepad,
-  ShoppingCart,
-  Tag,
-  Truck,
-} from "lucide-react";
+import { Plus } from "lucide-react";
 
 type ExpenseTypePillsProps = {
   items: ExpenseType[];
@@ -16,26 +8,15 @@ type ExpenseTypePillsProps = {
   onChange: (next: string) => void;
   disabled?: boolean;
   className?: string;
+  onAdd?: () => void;
 };
 
 export function getExpenseTypeIcon(
   iconName: string | null | undefined,
-  label?: string,
+  _label?: string,
 ) {
-  const key = (iconName || label || "").toString().toLowerCase();
-  if (
-    key.includes("belanj") ||
-    key.includes("shopping") ||
-    key.includes("shopping-cart")
-  )
-    return <ShoppingCart className="w-4 h-4" />;
-  if (key.includes("game")) return <Gamepad className="w-4 h-4" />;
-  if (key.includes("hibur")) return <Film className="w-4 h-4" />;
-  if (key.includes("makan")) return <CookingPot className="w-4 h-4" />;
-  if (key.includes("tagihan")) return <FileText className="w-4 h-4" />;
-  if (key.includes("mobil")) return <Truck className="w-4 h-4" />;
-  if (key.includes("rokok")) return <CigaretteIcon className="w-4 h-4" />;
-  return <Tag className="w-4 h-4" />;
+  const Icon = getExpenseIcon(iconName);
+  return <Icon className="w-4 h-4" />;
 }
 
 export function ExpenseTypePills({
@@ -44,6 +25,7 @@ export function ExpenseTypePills({
   onChange,
   disabled,
   className,
+  onAdd,
 }: ExpenseTypePillsProps) {
   return (
     <div className={"flex flex-wrap justify-center gap-1.5 " + (className || "")}>
@@ -86,6 +68,23 @@ export function ExpenseTypePills({
           </button>
         );
       })}
+
+      {onAdd && (
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={onAdd}
+          title="Tambah jenis pengeluaran"
+          className="group inline-flex items-center gap-1.5 rounded-xl border border-dashed px-2 border-slate-300/70   text-xs font-semibold text-slate-500 backdrop-blur-sm transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-slate-400/70 hover:bg-white/30 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-slate-300/60 dark:border-slate-600/60 dark:text-slate-500 dark:hover:border-slate-500/70 dark:hover:bg-slate-800/30 dark:hover:text-slate-300 dark:focus:ring-slate-500/50 sm:text-sm"
+        >
+          <span
+            aria-hidden="true"
+            className="flex h-6 w-6 items-center justify-center rounded-full border border-dashed border-slate-300/70 leading-none transition-all duration-300 ease-out group-hover:border-slate-400/70 group-hover:bg-white/20 dark:border-slate-600/60 dark:group-hover:border-slate-500/70 dark:group-hover:bg-slate-800/35 sm:h-7 sm:w-7"
+          >
+            <Plus className="h-3.5 w-3.5" />
+          </span> 
+        </button>
+      )}
     </div>
   );
 }

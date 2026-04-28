@@ -27,10 +27,11 @@ type ShoppingNote struct {
 }
 
 type ListNotesParams struct {
-	StartDate string
-	EndDate   string
-	Limit     int
-	Offset    int
+	StartDate  string
+	EndDate    string
+	KategoriID string
+	Limit      int
+	Offset     int
 }
 
 type ListNotesResult struct {
@@ -94,7 +95,7 @@ func readShoppingNote(
 	}, nil
 }
 
-func buildNotesWhere(userID string, startDate string, endDate string) (string, []any) {
+func buildNotesWhere(userID string, startDate string, endDate string, kategoriID string) (string, []any) {
 	parts := []string{"user_id = ?", "deleted_at IS NULL"}
 	args := []any{userID}
 
@@ -105,6 +106,10 @@ func buildNotesWhere(userID string, startDate string, endDate string) (string, [
 	if endDate != "" {
 		parts = append(parts, "tanggal <= ?")
 		args = append(args, endDate)
+	}
+	if kategoriID != "" {
+		parts = append(parts, "kategori_id = ?")
+		args = append(args, kategoriID)
 	}
 
 	return strings.Join(parts, " AND "), args
@@ -179,7 +184,7 @@ func ListShoppingNotes(ctx context.Context, db *sql.DB, amountCipher *notecrypto
 		return ListNotesResult{}, errors.New("user id is empty")
 	}
 
-	where, args := buildNotesWhere(userID, params.StartDate, params.EndDate)
+	where, args := buildNotesWhere(userID, params.StartDate, params.EndDate, params.KategoriID)
 
 	var total int
 	if err := db.QueryRowContext(ctx, "SELECT COUNT(*) FROM transaksi WHERE "+where, args...).Scan(&total); err != nil {

@@ -17,7 +17,8 @@ import {
   Upload,
   X,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import Cropper, { type Area } from "react-easy-crop";
 
 // Raw item from Gemini
 type ScannedItem = {
@@ -60,22 +61,6 @@ function todayISODate(): string {
   const now = new Date();
   const local = new Date(now.getTime() - now.getTimezoneOffset() * 60_000);
   return local.toISOString().slice(0, 10);
-}
-
-function loadImg(file: File): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file);
-    const img = new Image();
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      resolve(img);
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("Gagal memuat gambar"));
-    };
-    img.src = url;
-  });
 }
 
 async function cropAndCompress(
@@ -147,34 +132,6 @@ async function callScanReceipt(base64: string): Promise<ScannedItem[]> {
   return items;
 }
 
-function drawOverlay(
-  canvas: HTMLCanvasElement,
-  crop: Rect | null,
-  w: number,
-  h: number,
-) {
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return;
-  ctx.clearRect(0, 0, w, h);
-  const r = crop && crop.w > 5 && crop.h > 5 ? crop : { x: 0, y: 0, w, h };
-  ctx.fillStyle = "rgba(0,0,0,0.55)";
-  ctx.fillRect(0, 0, w, h);
-  ctx.clearRect(r.x, r.y, r.w, r.h);
-  ctx.strokeStyle = "#38bdf8";
-  ctx.lineWidth = 2;
-  ctx.strokeRect(r.x, r.y, r.w, r.h);
-  const hs = 14;
-  ctx.fillStyle = "#38bdf8";
-  for (const [cx, cy] of [
-    [r.x, r.y],
-    [r.x + r.w, r.y],
-    [r.x, r.y + r.h],
-    [r.x + r.w, r.y + r.h],
-  ] as [number, number][]) {
-    ctx.fillRect(cx - hs / 2, cy - hs / 2, hs, hs);
-  }
-}
-
 // ─── style constants ──────────────────────────────────────────────────────────
 
 const btnClass =
@@ -197,18 +154,14 @@ export function ReceiptScanner({
   // ── scan state ──
   const [step, setStep] = useState<Step>("upload");
   const [scanError, setScanError] = useState("");
-  const [canvasDims, setCanvasDims] = useState({ w: 0, h: 0 });
-  const [cropRect, setCropRect] = useState<Rect | null>(null);
+  const [imageSrc, setImageSrc] = useState<string>("");
+  const [crop, setCrop] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [aspect, setAspect] = useState<number | undefined>(undefined);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
-  // ── canvas refs ──
-  const sourceImgRef = useRef<HTMLImageElement | null>(null);
-  const displayCanvasRef = useRef<HTMLCanvasElement>(null);
-  const overlayCanvasRef = useRef<HTMLCanvasElement>(null);
+  // ── refs ──
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const dragStartRef = useRef<{ x: number; y: number } | null>(null);
-  const isDraggingRef = useRef(false);
-  const cropRectRef = useRef<Rect | null>(null);
-  cropRectRef.current = cropRect;
 
   // ── wizard state ──
   const [wizardItems, setWizardItems] = useState<WizardItem[]>([]);
@@ -224,8 +177,11 @@ export function ReceiptScanner({
     if (!isOpen) {
       setStep("upload");
       setScanError("");
-      setCropRect(null);
-      sourceImgRef.current = null;
+      setImageSrc("");
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
+      setAspect(undefined);
+      setCroppedAreaPixels(null);
       setWizardItems([]);
       setWizardIndex(0);
       setWizardError("");
@@ -233,59 +189,8 @@ export function ReceiptScanner({
     }
   }, [isOpen]);
 
-  // ── draw image on display canvas ──
-  useEffect(() => {
-    if (step !== "crop" || !displayCanvasRef.current || !sourceImgRef.current)
-      return;
-    displayCanvasRef.current
-      .getContext("2d")!
-      .drawImage(sourceImgRef.current, 0, 0, canvasDims.w, canvasDims.h);
-  }, [step, canvasDims]);
-
-  // ── draw crop overlay ──
-  useEffect(() => {
-    if (!overlayCanvasRef.current || canvasDims.w === 0) return;
-    drawOverlay(overlayCanvasRef.current, cropRect, canvasDims.w, canvasDims.h);
-  }, [cropRect, canvasDims]);
-
-  // ── canvas pointer events ──
-  const getCanvasPos = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    const rect = overlayCanvasRef.current!.getBoundingClientRect();
-    return {
-      x: Math.max(0, Math.min(canvasDims.w, Math.round(e.clientX - rect.left))),
-      y: Math.max(0, Math.min(canvasDims.h, Math.round(e.clientY - rect.top))),
-    };
-  };
-  const onPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    e.currentTarget.setPointerCapture(e.pointerId);
-    const pos = getCanvasPos(e);
-    dragStartRef.current = pos;
-    isDraggingRef.current = true;
-    setCropRect({ x: pos.x, y: pos.y, w: 0, h: 0 });
-  };
-  const onPointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (!isDraggingRef.current || !dragStartRef.current) return;
-    const pos = getCanvasPos(e);
-    const start = dragStartRef.current;
-    setCropRect({
-      x: Math.min(start.x, pos.x),
-      y: Math.min(start.y, pos.y),
-      w: Math.abs(pos.x - start.x),
-      h: Math.abs(pos.y - start.y),
-    });
-  };
-  const onPointerUp = () => {
-    isDraggingRef.current = false;
-    if (
-      cropRectRef.current &&
-      (cropRectRef.current.w < 10 || cropRectRef.current.h < 10)
-    ) {
-      setCropRect(null);
-    }
-  };
-
   // ── file select ──
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (fileInputRef.current) fileInputRef.current.value = "";
     if (!file) return;
@@ -293,41 +198,52 @@ export function ReceiptScanner({
       showToast("File harus berupa gambar", { type: "error" });
       return;
     }
-    try {
-      const img = await loadImg(file);
-      sourceImgRef.current = img;
-      const maxW = Math.min(680, window.innerWidth - 56);
-      const maxH = Math.floor(window.innerHeight * 0.52);
-      const ratio = Math.min(
-        1,
-        maxW / img.naturalWidth,
-        maxH / img.naturalHeight,
-      );
-      setCanvasDims({
-        w: Math.round(img.naturalWidth * ratio),
-        h: Math.round(img.naturalHeight * ratio),
-      });
-      setCropRect(null);
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImageSrc(reader.result as string);
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
+      setAspect(undefined);
+      setCroppedAreaPixels(null);
+      setScanError("");
       setStep("crop");
-    } catch {
+    };
+    reader.onerror = () => {
       showToast("Gagal memuat gambar", { type: "error" });
-    }
+    };
+    reader.readAsDataURL(file);
   };
+
+  const onCropComplete = useCallback((_: Area, areaPixels: Area) => {
+    setCroppedAreaPixels(areaPixels);
+  }, []);
+
+  const loadImageFromUrl = (url: string): Promise<HTMLImageElement> =>
+    new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error("Gagal memuat gambar"));
+      img.src = url;
+    });
 
   // ── scan ──
   const handleScan = async () => {
-    if (!sourceImgRef.current) return;
+    if (!imageSrc || !croppedAreaPixels) return;
     setScanError("");
     setStep("scanning");
     try {
-      const fullRect = { x: 0, y: 0, w: canvasDims.w, h: canvasDims.h };
-      const rect =
-        cropRect && cropRect.w > 5 && cropRect.h > 5 ? cropRect : fullRect;
+      const img = await loadImageFromUrl(imageSrc);
+      const rect: Rect = {
+        x: croppedAreaPixels.x,
+        y: croppedAreaPixels.y,
+        w: croppedAreaPixels.width,
+        h: croppedAreaPixels.height,
+      };
       const base64 = await cropAndCompress(
-        sourceImgRef.current,
+        img,
         rect,
-        canvasDims.w,
-        canvasDims.h,
+        img.naturalWidth,
+        img.naturalHeight,
       );
       const items = await callScanReceipt(base64);
       if (items.length === 0) {
@@ -446,7 +362,11 @@ export function ReceiptScanner({
         onClick={step !== "wizard" ? onClose : undefined}
       />
 
-      <section className="relative z-10 max-h-[90vh] w-full max-w-lg overflow-auto rounded-3xl border border-white/45 bg-white/35 p-4 shadow-[0_24px_60px_rgba(15,23,42,0.22)] backdrop-blur-md dark:border-slate-700/70 dark:bg-slate-900/40 sm:p-5">
+      <section
+        className={`relative z-10 max-h-[90vh] w-full max-w-lg rounded-3xl border border-white/45 bg-white/35 p-4 shadow-[0_24px_60px_rgba(15,23,42,0.22)] backdrop-blur-md dark:border-slate-700/70 dark:bg-slate-900/40 sm:p-5 ${
+          step === "crop" ? "overflow-hidden" : "overflow-y-auto"
+        }`}
+      >
         {/* ── Header ── */}
         <div className="mb-4 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
@@ -544,30 +464,61 @@ export function ReceiptScanner({
         {step === "crop" && (
           <div className="flex flex-col gap-3">
             <p className="text-xs text-gray-500 dark:text-slate-400">
-              Seret untuk memilih area struk. Biarkan kosong untuk memilih
-              seluruh gambar.
+              Cubit untuk zoom, geser untuk memindahkan. Pilih bentuk area di
+              bawah, lalu posisikan struk di dalam kotak.
             </p>
+
+            {/* Aspect ratio picker */}
+            <div className="flex flex-wrap gap-1.5">
+              {(
+                [
+                  { label: "Bebas", value: undefined },
+                  { label: "Strip", value: 5 / 2 },
+                  { label: "Lebar", value: 16 / 9 },
+                  { label: "1:1", value: 1 },
+                  { label: "Tinggi", value: 3 / 4 },
+                ] as const
+              ).map((opt) => {
+                const active = aspect === opt.value;
+                return (
+                  <button
+                    key={opt.label}
+                    type="button"
+                    onClick={() => {
+                      setAspect(opt.value);
+                      setCrop({ x: 0, y: 0 });
+                      setZoom(1);
+                    }}
+                    className={[
+                      "rounded-full border px-3 py-1 text-xs font-medium transition-all duration-200",
+                      active
+                        ? "border-cyan-400/70 bg-cyan-500/20 text-cyan-700 dark:text-cyan-200"
+                        : "border-white/45 bg-white/35 text-slate-700 hover:bg-white/50 dark:border-slate-700/70 dark:bg-slate-900/35 dark:text-slate-300 dark:hover:bg-slate-800/45",
+                    ].join(" ")}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+
             <div
-              className="relative mx-auto overflow-hidden rounded-xl border border-white/40 dark:border-slate-700/50"
-              style={{
-                width: `${canvasDims.w}px`,
-                height: `${canvasDims.h}px`,
-              }}
+              className="relative mx-auto w-full overflow-hidden rounded-xl border border-white/40 bg-black/40 dark:border-slate-700/50"
+              style={{ height: "55vh" }}
             >
-              <canvas
-                ref={displayCanvasRef}
-                width={canvasDims.w}
-                height={canvasDims.h}
-                className="absolute inset-0"
-              />
-              <canvas
-                ref={overlayCanvasRef}
-                width={canvasDims.w}
-                height={canvasDims.h}
-                className="absolute inset-0 cursor-crosshair touch-none"
-                onPointerDown={onPointerDown}
-                onPointerMove={onPointerMove}
-                onPointerUp={onPointerUp}
+              <Cropper
+                image={imageSrc}
+                crop={crop}
+                zoom={zoom}
+                aspect={aspect}
+                minZoom={0.5}
+                maxZoom={5}
+                restrictPosition={false}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={onCropComplete}
+                showGrid={true}
+                objectFit="contain"
               />
             </div>
             {scanError && (
@@ -578,7 +529,11 @@ export function ReceiptScanner({
                 type="button"
                 onClick={() => {
                   setStep("upload");
-                  setCropRect(null);
+                  setImageSrc("");
+                  setCrop({ x: 0, y: 0 });
+                  setZoom(1);
+                  setAspect(undefined);
+                  setCroppedAreaPixels(null);
                   setScanError("");
                 }}
                 className={btnClass}

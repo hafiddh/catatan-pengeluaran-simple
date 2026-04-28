@@ -86,6 +86,7 @@ func (h NotesHandler) List(c *echo.Context) error {
 
 	startDate := strings.TrimSpace(c.QueryParam("start_date"))
 	endDate := strings.TrimSpace(c.QueryParam("end_date"))
+	kategoriID := strings.TrimSpace(c.QueryParam("kategori_id"))
 
 	page := 1
 	if p, err := strconv.Atoi(c.QueryParam("page")); err == nil && p > 0 {
@@ -98,10 +99,11 @@ func (h NotesHandler) List(c *echo.Context) error {
 	}
 
 	result, err := store.ListShoppingNotes(c.Request().Context(), h.DB, h.AmountCipher, user.ID, store.ListNotesParams{
-		StartDate: startDate,
-		EndDate:   endDate,
-		Limit:     limit,
-		Offset:    (page - 1) * limit,
+		StartDate:  startDate,
+		EndDate:    endDate,
+		KategoriID: kategoriID,
+		Limit:      limit,
+		Offset:     (page - 1) * limit,
 	})
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Gagal mengambil data: "+err.Error())
