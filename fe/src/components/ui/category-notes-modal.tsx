@@ -93,13 +93,12 @@ export function CategoryNotesModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-4">
+    <div className="fixed inset-0 z-80 flex items-end justify-center p-0 sm:items-center sm:p-4">
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />
-      <div className="relative z-10 flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-3xl border border-white/45 bg-white/95 shadow-[0_-12px_48px_rgba(15,23,42,0.2)] backdrop-blur-xl dark:border-slate-700/70 dark:bg-slate-900/95 sm:max-h-[85dvh] sm:max-w-lg sm:rounded-3xl sm:shadow-[0_24px_64px_rgba(15,23,42,0.24)]">
-
+      <div className="relative z-10 flex h-[96dvh] w-full flex-col overflow-hidden rounded-t-3xl border border-white/45 bg-white/95 shadow-[0_-12px_48px_rgba(15,23,42,0.2)] backdrop-blur-xl dark:border-slate-700/70 dark:bg-slate-900/95 sm:h-auto sm:max-h-[85dvh] sm:max-w-lg sm:rounded-3xl sm:shadow-[0_24px_64px_rgba(15,23,42,0.24)]">
         {/* Header */}
         <div className="flex shrink-0 items-center justify-between border-b border-slate-100/80 px-5 py-4 dark:border-slate-800/70">
           <div className="flex items-center gap-2.5 min-w-0">
@@ -113,6 +112,9 @@ export function CategoryNotesModal({
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 {notes.length} transaksi &middot; {formatCurrency(totalAmount)}
               </p>
+              <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                {formatDate(startDate)} – {formatDate(endDate)}
+              </p>
             </div>
           </div>
           <button
@@ -125,7 +127,7 @@ export function CategoryNotesModal({
         </div>
 
         {/* Body */}
-        <div className="min-h-0 flex-1 overflow-y-auto">
+        <div className="min-h-0 flex-1 overflow-y-auto pb-15">
           {isLoading ? (
             <div className="flex min-h-40 items-center justify-center gap-2 text-sm text-slate-500 dark:text-slate-400">
               <LoaderCircle className="h-4 w-4 animate-spin" />
@@ -186,7 +188,7 @@ export function CategoryNotesModal({
 
         {/* Footer total */}
         {!isLoading && !error && notes.length > 0 && (
-          <div className="shrink-0 border-t border-slate-100/80 px-5 py-3.5 dark:border-slate-800/70">
+          <div className="shrink-0 border-t border-slate-100/80 px-5 pb-5 pt-3.5 dark:border-slate-800/70">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
                 Total

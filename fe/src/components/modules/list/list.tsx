@@ -620,10 +620,10 @@ export function ListNotesPage() {
       </div>
 
       {editingNote ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 px-3 backdrop-blur-sm">
+        <div className="-mt-10 fixed inset-0 z-80 flex items-center justify-center bg-slate-950/45 px-3 backdrop-blur-sm">
           <div className="absolute inset-0" onClick={() => closeEditModal()} />
 
-          <section className="relative z-10 max-h-[90vh] w-full max-w-2xl overflow-auto rounded-3xl border border-white/45 bg-white/35 p-3 shadow-[0_24px_60px_rgba(15,23,42,0.22)] backdrop-blur-md dark:border-slate-700/70 dark:bg-slate-900/40 sm:p-6">
+          <section className="mb-10 relative z-10 max-h-[80vh] w-full max-w-2xl overflow-auto rounded-3xl border border-white/45 bg-white/35 p-3 shadow-[0_24px_60px_rgba(15,23,42,0.22)] backdrop-blur-md dark:border-slate-700/70 dark:bg-slate-900/40 sm:p-6">
             <div className="grid grid-cols-1 gap-4">
               <label className="space-y-3">
                 <div className="flex items-center gap-2">
@@ -746,7 +746,7 @@ export function ListNotesPage() {
       ) : null}
 
       {pendingDeleteNote ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 px-3 backdrop-blur-sm">
+        <div className="fixed inset-0 z-80 flex items-center justify-center bg-slate-950/45 px-3 backdrop-blur-sm">
           <div className="absolute inset-0" onClick={closeDeleteModal} />
 
           <section className="relative z-10 w-full max-w-md rounded-3xl border border-white/45 bg-white/35 p-4 shadow-[0_24px_60px_rgba(15,23,42,0.22)] backdrop-blur-md dark:border-slate-700/70 dark:bg-slate-900/40 sm:p-5">

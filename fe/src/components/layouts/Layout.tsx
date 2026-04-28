@@ -18,6 +18,8 @@ export default function Layout({ title, description, children }: LayoutProps) {
   const [profileName, setProfileName] = useState<string>("");
   const [isProfilePreviewOpen, setIsProfilePreviewOpen] =
     useState<boolean>(false);
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] =
+    useState<boolean>(false);
   const [isDark, setIsDark] = useState<boolean>(false);
   const [allowed, setAllowed] = useState<boolean | null>(true);
   const [pathname, setPathname] = useState<string>("");
@@ -339,7 +341,7 @@ export default function Layout({ title, description, children }: LayoutProps) {
 
                 <button
                   type="button"
-                  onClick={handleLogout}
+                  onClick={() => setIsLogoutConfirmOpen(true)}
                   className={navItemClass(false, "cursor-pointer")}
                 >
                   <span className={navIconFrameClass(false)}>
@@ -391,6 +393,44 @@ export default function Layout({ title, description, children }: LayoutProps) {
           </div>
         </div>
       </nav>
+
+      {isLogoutConfirmOpen && (
+        <div className="fixed inset-0 z-80 flex items-center justify-center bg-slate-950/45 px-3 backdrop-blur-sm">
+          <div className="absolute inset-0" onClick={() => setIsLogoutConfirmOpen(false)} />
+          <section className="relative z-10 w-full max-w-sm rounded-3xl border border-white/45 bg-white/35 p-4 shadow-[0_24px_60px_rgba(15,23,42,0.22)] backdrop-blur-md dark:border-slate-700/70 dark:bg-slate-900/40 sm:p-5">
+            <div className="flex items-start gap-3">
+              <div className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700/80 dark:bg-slate-800/60 dark:text-slate-200">
+                <LogOut className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-base font-semibold text-gray-900 dark:text-slate-100">
+                  Keluar dari akun?
+                </h3>
+                <p className="mt-1 text-sm text-gray-500 dark:text-slate-300">
+                  Sesi Anda akan diakhiri dan Anda perlu login kembali.
+                </p>
+              </div>
+            </div>
+            <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setIsLogoutConfirmOpen(false)}
+                className="inline-flex cursor-pointer items-center justify-center rounded-2xl border border-white/45 bg-white/35 px-4 py-2.5 text-sm font-semibold text-slate-900 shadow-[0_10px_24px_rgba(15,23,42,0.08)] backdrop-blur-sm transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-white/50 dark:border-slate-700/70 dark:bg-slate-900/35 dark:text-slate-100 dark:hover:bg-slate-800/45"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl border border-white/45 bg-white/35 px-4 py-2.5 text-sm font-semibold text-slate-900 shadow-[0_10px_24px_rgba(15,23,42,0.08)] backdrop-blur-sm transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-white/50 dark:border-slate-700/70 dark:bg-slate-900/35 dark:text-slate-100 dark:hover:bg-slate-800/45"
+              >
+                <LogOut className="h-4 w-4" />
+                Ya, keluar
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
 
       {isProfilePreviewOpen ? (
         <div

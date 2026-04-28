@@ -2,7 +2,11 @@ import { CategoryNotesModal } from "@/components/ui/category-notes-modal";
 import { getExpenseTypeIcon } from "@/components/ui/expense-type-pills";
 import { hasStoredAuth } from "@/lib/auth-session";
 import showToast from "@/lib/simpleToast";
-import { getShoppingNotesSummary, type NotesSummary, type NotesSummaryItem } from "@/service/notes";
+import {
+  getShoppingNotesSummary,
+  type NotesSummary,
+  type NotesSummaryItem,
+} from "@/service/notes";
 import {
   CalendarRange,
   ChevronDown,
